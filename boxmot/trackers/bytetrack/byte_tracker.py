@@ -6,6 +6,7 @@ from boxmot.motion.kalman_filters.adapters import ByteTrackKalmanFilterAdapter
 from boxmot.trackers.bytetrack.basetrack import BaseTrack, TrackState
 from boxmot.utils.matching import fuse_score, iou_distance, linear_assignment
 from boxmot.utils.ops import tlwh2xyah, xywh2tlwh, xywh2xyxy, xyxy2xywh
+import matplotlib.pyplot as plt
 
 
 class STrack(BaseTrack):
@@ -128,7 +129,7 @@ class BYTETracker(object):
         self.max_time_lost = self.buffer_size
         self.kalman_filter = ByteTrackKalmanFilterAdapter()
 
-    def update(self, dets, _):
+    def update(self, dets, img):
         assert isinstance(
             dets, np.ndarray
         ), f"Unsupported 'dets' input format '{type(dets)}', valid format is np.ndarray"
@@ -152,7 +153,6 @@ class BYTETracker(object):
         inds_low = confs > 0.1 
         inds_high = confs < self.track_thresh
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
-
         dets_second = dets[inds_second]
         dets = dets[remain_inds]
 
@@ -178,9 +178,12 @@ class BYTETracker(object):
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
         dists = iou_distance(strack_pool, detections)
-        # print(dists)
+
         # if not self.args.mot20:
         dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。
+        # plt.imshow(dists, cmap='hot', vmin=0, vmax=1, interpolation='nearest')
+        # plt.colorbar()
+        # plt.show()        
         matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
             dists, thresh=self.match_thresh
         )
@@ -266,6 +269,7 @@ class BYTETracker(object):
         self.tracked_stracks, self.lost_stracks = remove_duplicate_stracks(
             self.tracked_stracks, self.lost_stracks
         )
+
         # get scores of lost tracks
         output_stracks = [track for track in self.tracked_stracks if track.is_activated]
         outputs = []

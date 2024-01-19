@@ -8,7 +8,8 @@ class TrackState(object):
     New = 0
     Tracked = 1
     Lost = 2
-    Removed = 3
+    LongLost = 3
+    Removed = 4
 
 
 class BaseTrack(object):
@@ -50,5 +51,12 @@ class BaseTrack(object):
     def mark_lost(self):
         self.state = TrackState.Lost
 
+    def mark_long_lost(self):
+        self.state = TrackState.LongLost
+
     def mark_removed(self):
         self.state = TrackState.Removed
+
+    @staticmethod
+    def clear_count():
+        BaseTrack._count = 0
