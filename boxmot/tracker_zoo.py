@@ -113,6 +113,18 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             inertia=cfg.inertia,
         )
         return hybridsort
+    elif tracker_type == 'nanotrack':
+        from boxmot.trackers.nanotrack.nano_tracker import NanoTracker
+        
+        nanotracker = NanoTracker(
+            track_thresh=cfg.track_thresh,
+            match_thresh=cfg.match_thresh,
+            track_buffer=cfg.track_buffer,
+            frame_rate=cfg.frame_rate
+        )
+        
+        return nanotracker
+
     else:
         print('No such tracker')
         exit()
