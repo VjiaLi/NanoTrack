@@ -131,7 +131,47 @@ class  NanoTracker(object):
         self.kalman_filter = ByteTrackKalmanFilterAdapter()
 
     def split_low_dets(self, low_dets):
-        pass
+        # 创建一个列表用于存储不同遮挡情况的检测框
+        non_occluded_dets = []
+        occluded_dets_by_other = []
+        occluded_dets_of_other = []
+
+        # 遍历每一个检测框
+        for det in low_dets:
+            occluded_by_other = False
+            occluded_of_other = False
+            x1, y1, x2, y2, conf, _, ind = det
+
+            # 假设当前检测框没有被遮挡
+            is_non_occluded = True
+
+            # 遍历其他检测框，判断当前检测框是否被遮挡或遮挡其他检测框
+            for other_det in low_dets:
+                other_x1, other_y1, other_x2, other_y2, other_conf, _, other_ind = other_det
+
+                if ind == other_ind:
+                    continue  # 跳过自身检测框
+
+                # 判断是否有重叠
+                overlap = not (x2 < other_x1 or other_x2 < x1 or y2 < other_y1 or other_y2 < y1)
+
+                if overlap:
+                    is_non_occluded = False
+                    # 判定是被其他框遮挡还是遮挡其他框
+                    if conf > other_conf:
+                        occluded_by_other = True
+                    else:
+                        occluded_of_other = True
+
+            # 根据判定结果添加到相应的列表中
+            if is_non_occluded:
+                non_occluded_dets.append(det)
+            elif occluded_of_other:
+                occluded_dets_of_other.append(det)
+            elif occluded_by_other and not occluded_dets_of_other:
+                occluded_dets_by_other.append(det)
+            
+        return np.array(non_occluded_dets), np.array(occluded_dets_by_other), np.array(occluded_dets_of_other)
 
     def update(self, dets, img):
         assert isinstance(
@@ -158,8 +198,16 @@ class  NanoTracker(object):
         inds_high = confs < self.track_thresh
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
+        non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
         dets = dets[remain_inds]
-
+        if non_occluded_dets.size != 0:
+            dets = np.vstack((dets, non_occluded_dets))
+        if occluded_dets_by_other.size != 0 and occluded_dets_of_other.size != 0:
+            dets_second = np.vstack((occluded_dets_by_other, occluded_dets_of_other))
+        elif occluded_dets_by_other.size != 0:
+            dets_second = occluded_dets_by_other
+        elif occluded_dets_of_other.size != 0:
+            dets_second = occluded_dets_of_other
         if len(dets) > 0:
             """Detections"""
             detections = [
@@ -184,10 +232,7 @@ class  NanoTracker(object):
         dists = iou_distance(strack_pool, detections)
 
         # if not self.args.mot20:
-        dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。
-        # plt.imshow(dists, cmap='hot', vmin=0, vmax=1, interpolation='nearest')
-        # plt.colorbar()
-        # plt.show()        
+        dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。 
         matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
             dists, thresh=self.match_thresh
         )

@@ -287,7 +287,6 @@ class BYTETracker(object):
 
 # track_id, class_id, conf
 
-
 def joint_stracks(tlista, tlistb):
     exists = {}
     res = []
