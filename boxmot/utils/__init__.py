@@ -7,9 +7,9 @@ import numpy as np
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # root directory
+WEIGHTS = ROOT / 'weights'
+CONFIG = ROOT / 'config'
 BOXMOT = ROOT / "boxmot"
-EXAMPLES = ROOT / "examples"
-WEIGHTS = ROOT / "examples" / "weights"
 REQUIREMENTS = ROOT / "requirements.txt"
 
 # global logger
