@@ -39,13 +39,11 @@ def parse_args():
                         help='save results to project/name')
     parser.add_argument('--name', default='exp',
                         help='save results to project/name')
-    parser.add_argument('--save-mot', action='store_true',
-                        help='save tracking results in a single txt file')
     parser.add_argument('--exist-ok', action='store_true',
                         help='existing project/name ok, do not increment')
-    parser.add_argument('--save', action='store_true',
+    parser.add_argument('--save', action='store_false',
                         help='save video tracking results')
-    parser.add_argument('--show', action='store_true',
+    parser.add_argument('--show', action='store_false',
                         help='display tracking video results')
     parser.add_argument('--per-class', default=False, action='store_true',
                         help='not mix up classes when tracking')

@@ -47,7 +47,7 @@ def create_exp(args):
             exp_files.append(filename)
 
     if not exp_files:
-        max_num = 1
+        max_num = 0
     else:      
         max_num = max(int(filename[3:]) for filename in exp_files)
 
