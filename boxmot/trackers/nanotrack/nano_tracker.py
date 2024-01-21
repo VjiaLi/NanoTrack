@@ -123,13 +123,15 @@ class  NanoTracker(object):
 
         self.frame_id = 0
         self.track_buffer = track_buffer
-
         self.track_thresh = track_thresh
         self.match_thresh = match_thresh
         self.det_thresh = track_thresh
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.max_time_lost = self.buffer_size
         self.kalman_filter = ByteTrackKalmanFilterAdapter()
+
+    def split_low_dets(self, low_dets):
+        pass
 
     def update(self, dets, img):
         assert isinstance(
@@ -148,6 +150,15 @@ class  NanoTracker(object):
         refind_stracks = []
         lost_stracks = []
         removed_stracks = []
+        confs = dets[:, 4]
+
+        remain_inds = confs > self.track_thresh   # 取高分检测框
+
+        inds_low = confs > 0.1 
+        inds_high = confs < self.track_thresh
+        inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
+        dets_second = dets[inds_second]
+        dets = dets[remain_inds]
 
         if len(dets) > 0:
             """Detections"""
@@ -166,26 +177,17 @@ class  NanoTracker(object):
             else:
                 tracked_stracks.append(track)
 
-        strack_pool = np.array(joint_stracks(tracked_stracks, self.lost_stracks))  # 将已有的轨迹和丢失的轨迹合并
-
-        scores = np.array([strack.score for strack in strack_pool])
-        remain_inds = scores > self.track_thresh   # 取高分轨迹
-
-        inds_low = scores > 0.1 
-        inds_high = scores < self.track_thresh
-        inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的轨迹，即低分轨迹
-
-        strack_second = strack_pool[inds_second]  # 低分轨迹
-
-        strack_pool = strack_pool[remain_inds]  # 高分轨迹
-
+        """ Step 2: First association, with high score detection boxes"""
+        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)  # 将已有的轨迹和丢失的轨迹合并
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
-
-        """ Step 2: First association, with high score track"""
         dists = iou_distance(strack_pool, detections)
+
         # if not self.args.mot20:
         dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。
+        # plt.imshow(dists, cmap='hot', vmin=0, vmax=1, interpolation='nearest')
+        # plt.colorbar()
+        # plt.show()        
         matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
             dists, thresh=self.match_thresh
         )
@@ -202,25 +204,21 @@ class  NanoTracker(object):
 
         """ Step 3: Second association, with low score detection boxes"""
         # association the untrack to the low score detections
+        if len(dets_second) > 0:
+            """Detections"""
+            detections_second = [STrack(det_second) for det_second in dets_second]
+        else:
+            detections_second = []
         r_tracked_stracks = [   # 筛选没有匹配上的并且被激活的轨迹
             strack_pool[i]
             for i in u_track
             if strack_pool[i].state == TrackState.Tracked
         ]
-
-        dets = [dets[i] for i in u_detection] # 筛选第一次没有匹配上的检测框
-
-        u_detection = [
-            STrack(det) for det in dets
-        ]
-
-        strack_second = np.array(joint_stracks(strack_second, r_tracked_stracks))  # 降低分轨迹与第一次未匹配上的轨迹合并与第一次未匹配上的检测进行再一次匹配
-
-        dists = iou_distance(strack_second, u_detection)
+        dists = iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, u_detection_second = linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
-            track = strack_second[itracked]
-            det = u_detection[idet]
+            track = r_tracked_stracks[itracked]
+            det = detections_second[idet]
             if track.state == TrackState.Tracked:
                 track.update(det, self.frame_id)
                 activated_starcks.append(track)
@@ -229,19 +227,19 @@ class  NanoTracker(object):
                 refind_stracks.append(track)
 
         for it in u_track:
-            track = strack_second[it]
+            track = r_tracked_stracks[it]
             if not track.state == TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
 
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
-        u_detection = [u_detection[i] for i in u_detection_second if u_detection[i].score > self.det_thresh]
-        dists = iou_distance(unconfirmed, u_detection)
+        detections = [detections[i] for i in u_detection]
+        dists = iou_distance(unconfirmed, detections)
         # if not self.args.mot20:
-        dists = fuse_score(dists, u_detection)
-        matches, u_unconfirmed, u_detection_second = linear_assignment(dists, thresh=0.7)
+        dists = fuse_score(dists, detections)
+        matches, u_unconfirmed, u_detection = linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
-            unconfirmed[itracked].update(u_detection[idet], self.frame_id)
+            unconfirmed[itracked].update(detections[idet], self.frame_id)
             activated_starcks.append(unconfirmed[itracked])
         for it in u_unconfirmed:
             track = unconfirmed[it]
@@ -249,11 +247,12 @@ class  NanoTracker(object):
             removed_stracks.append(track)
 
         """ Step 4: Init new stracks"""
-        for inew in u_detection_second:
-            track = u_detection[inew]
+        for inew in u_detection:
+            track = detections[inew]
+            if track.score < self.det_thresh:
+                continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
-
         """ Step 5: Update state"""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:
@@ -274,6 +273,7 @@ class  NanoTracker(object):
         self.tracked_stracks, self.lost_stracks = remove_duplicate_stracks(
             self.tracked_stracks, self.lost_stracks
         )
+
         # get scores of lost tracks
         output_stracks = [track for track in self.tracked_stracks if track.is_activated]
         outputs = []
