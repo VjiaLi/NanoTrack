@@ -1,5 +1,6 @@
 import os
 import cv2
+from utils.utils import create_exp
 
 color = [(75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245), (244, 212, 66), (230, 46, 240), (212, 222, 250), (144, 153, 70), (255, 190, 220), (36, 146, 154), (0, 0, 128), (195, 255, 170), (117, 0, 0), (169, 169, 169), (0, 0, 0), (83, 44, 0), (16, 165, 255), (198, 132, 12), (102, 189, 255), (77, 77, 247), (164, 85, 36), (172, 183, 65)]  # BGR
 text_color = (255, 255, 255)  # BGR
@@ -9,7 +10,39 @@ class Show:
         self.args = args
         self.img = img
         self.lw = max(round(sum(self.img.shape) / 2 * 0.003), 2)
-        self.tf = max(self.lw - 1, 1) 
+        self.tf = max(self.lw - 1, 1)
+    
+    def observe_low_dets(self, dets, i, im, frame):
+        if dets.shape[0] != 0:
+            xyxys = dets[:, 0:4].astype('int') # float64 to int
+            confs = dets[:, 4]
+            ids = dets[:, 6]
+            for xyxy, conf, id in zip(xyxys, confs, ids):
+                p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
+                im = cv2.rectangle(
+                    self.img,
+                    (xyxy[0], xyxy[1]),
+                    (xyxy[2], xyxy[3]),
+                    color[i],
+                    self.lw,
+                    cv2.LINE_AA
+                )
+                w, h = cv2.getTextSize(f'{round(conf,2)}, {id}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
+                outside = p1[1] - h >= 3
+                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                cv2.rectangle(im, p1, p2, color[i], -1, cv2.LINE_AA)  # filled
+                cv2.putText(
+                    im,
+                    f'{round(conf,2)}, {id}',
+                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    0,
+                    self.lw / 3,
+                    text_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA
+                )
+            cv2.imwrite(f'C:\\Users\\Lenovo\\Desktop\\Nanotrack\\runs\\test\\{frame}.jpg',im)  
+         
 
     def show_dets(self, dets):
         xyxys = dets[:, 0:4].astype('int') # float64 to int

@@ -6,14 +6,15 @@ from boxmot.motion.kalman_filters.adapters import ByteTrackKalmanFilterAdapter
 from boxmot.trackers.nanotrack.basetrack import BaseTrack, TrackState
 from boxmot.utils.matching import fuse_score, iou_distance, linear_assignment
 from boxmot.utils.ops import tlwh2xyah, xywh2tlwh, xywh2xyxy, xyxy2xywh
-
-
+from utils.show import Show
+from track import parse_args
 
 class STrack(BaseTrack):
     shared_kalman = ByteTrackKalmanFilterAdapter()
 
     def __init__(self, det):
         # wait activate
+        self.det = det
         self.xywh = xyxy2xywh(det[0:4])  # (x1, y1, x2, y2) --> (xc, yc, w, h)
         self.tlwh = xywh2tlwh(self.xywh)  # (xc, yc, w, h) --> (t, l, w, h)
         self.xyah = tlwh2xyah(self.tlwh)
@@ -135,7 +136,7 @@ class  NanoTracker(object):
         non_occluded_dets = []
         occluded_dets_by_other = []
         occluded_dets_of_other = []
-
+        
         # 遍历每一个检测框
         for det in low_dets:
             occluded_by_other = False
@@ -166,9 +167,11 @@ class  NanoTracker(object):
             # 根据判定结果添加到相应的列表中
             if is_non_occluded:
                 non_occluded_dets.append(det)
-            elif occluded_of_other:
+                continue
+            if occluded_of_other:
                 occluded_dets_of_other.append(det)
-            elif occluded_by_other and not occluded_dets_of_other:
+                continue
+            if occluded_by_other and not occluded_of_other:
                 occluded_dets_by_other.append(det)
             
         return np.array(non_occluded_dets), np.array(occluded_dets_by_other), np.array(occluded_dets_of_other)
@@ -215,7 +218,9 @@ class  NanoTracker(object):
         lost_stracks = []
         removed_stracks = []
         confs = dets[:, 4]
-
+        """
+            visualize
+        """
         remain_inds = confs > self.track_thresh   # 取高分检测框
 
         inds_low = confs > 0.1 
@@ -223,8 +228,12 @@ class  NanoTracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
+        # print(len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) == len(dets_second))
         dets = dets[remain_inds]
-
+        # show = Show(None, img)
+        # show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
+        # show.observe_low_dets(occluded_dets_of_other, 2, img, self.frame_id)
+        # show.observe_low_dets(occluded_dets_by_other, 1, img, self.frame_id)
         if len(dets) > 0:
             """Detections"""
             detections = [STrack(det) for det in dets]
@@ -265,12 +274,14 @@ class  NanoTracker(object):
             detections_second = []
 
         matches, u_track, u_detection_second, activated_starcks, refind_stracks = self.associate(detections_second, r_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
-        
+
         if len(occluded_dets_by_other) > 0:
             """Detections"""
+            for i in u_detection_second:
+                occluded_dets_by_other = np.vstack((occluded_dets_by_other, detections_second[i].det))
             detections_third = [STrack(det) for det in occluded_dets_by_other]
         else:
-            detections_third = []
+            detections_third = [STrack(detections_second[i].det) for i in u_detection_second]
 
         rr_tracked_stracks = [ 
             strack_pool[i]
@@ -279,12 +290,14 @@ class  NanoTracker(object):
         ]
 
         matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
-
+        
         if len(occluded_dets_of_other) > 0:
             """Detections"""
+            for i in u_detection_third:
+                occluded_dets_of_other = np.vstack((occluded_dets_of_other, detections_third[i].det))
             detections_last = [STrack(det) for det in occluded_dets_of_other]
         else:
-            detections_last = []
+            detections_last = [STrack(detections_third[i].det) for i in u_detection_third]
 
         rrr_tracked_stracks = [ 
             strack_pool[i]

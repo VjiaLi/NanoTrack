@@ -36,7 +36,6 @@ def write_mot_results(txt_path, results, frame_idx):
     with open(str(txt_path), 'ab+') as f:  # append binary mode
         np.savetxt(f, mot.numpy(), fmt='%d')  # save as ints instead of scientific notation
 
-
 def create_exp(args):
     if not os.path.exists(Path(args.project)):
         os.makedirs(Path(args.project))

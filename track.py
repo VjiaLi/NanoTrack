@@ -43,7 +43,7 @@ def parse_args():
                         help='existing project/name ok, do not increment')
     parser.add_argument('--save', action='store_true',
                         help='save video tracking results')
-    parser.add_argument('--show', action='store_false',
+    parser.add_argument('--show', action='store_true',
                         help='display tracking video results')
     parser.add_argument('--per-class', default=False, action='store_true',
                         help='not mix up classes when tracking')
