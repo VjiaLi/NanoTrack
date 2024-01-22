@@ -227,7 +227,8 @@ class  NanoTracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
-        # print(len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) == len(dets_second))
+        # if len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) != len(dets_second):
+            # print(1)
         dets = dets[remain_inds]
         show = Show(None, img)
         show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
@@ -307,7 +308,7 @@ class  NanoTracker(object):
         matches, u_track, u_detection_last, activated_starcks, refind_stracks = self.associate(detections_last, rrr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
 
         for it in u_track:
-            track = r_tracked_stracks[it]
+            track = rrr_tracked_stracks[it]
             if not track.state == TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
