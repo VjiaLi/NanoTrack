@@ -7,7 +7,6 @@ from boxmot.trackers.nanotrack.basetrack import BaseTrack, TrackState
 from boxmot.utils.matching import fuse_score, iou_distance, linear_assignment
 from boxmot.utils.ops import tlwh2xyah, xywh2tlwh, xywh2xyxy, xyxy2xywh
 from utils.show import Show
-from track import parse_args
 
 class STrack(BaseTrack):
     shared_kalman = ByteTrackKalmanFilterAdapter()
@@ -230,10 +229,10 @@ class  NanoTracker(object):
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
         # print(len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) == len(dets_second))
         dets = dets[remain_inds]
-        # show = Show(None, img)
-        # show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
-        # show.observe_low_dets(occluded_dets_of_other, 2, img, self.frame_id)
-        # show.observe_low_dets(occluded_dets_by_other, 1, img, self.frame_id)
+        show = Show(None, img)
+        show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
+        show.observe_low_dets(occluded_dets_of_other, 2, img, self.frame_id)
+        show.observe_low_dets(occluded_dets_by_other, 1, img, self.frame_id)
         if len(dets) > 0:
             """Detections"""
             detections = [STrack(det) for det in dets]

@@ -16,8 +16,7 @@ class Show:
         if dets.shape[0] != 0:
             xyxys = dets[:, 0:4].astype('int') # float64 to int
             confs = dets[:, 4]
-            ids = dets[:, 6]
-            for xyxy, conf, id in zip(xyxys, confs, ids):
+            for xyxy, conf in zip(xyxys, confs):
                 p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
                 im = cv2.rectangle(
                     self.img,
@@ -27,13 +26,13 @@ class Show:
                     self.lw,
                     cv2.LINE_AA
                 )
-                w, h = cv2.getTextSize(f'{round(conf,2)}, {id}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
+                w, h = cv2.getTextSize(f'{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
                 cv2.rectangle(im, p1, p2, color[i], -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     im,
-                    f'{round(conf,2)}, {id}',
+                    f'{round(conf,2)}',
                     (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
                     0,
                     self.lw / 3,
