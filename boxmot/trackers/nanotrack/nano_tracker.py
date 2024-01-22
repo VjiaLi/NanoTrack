@@ -6,7 +6,7 @@ from boxmot.motion.kalman_filters.adapters import ByteTrackKalmanFilterAdapter
 from boxmot.trackers.nanotrack.basetrack import BaseTrack, TrackState
 from boxmot.utils.matching import fuse_score, iou_distance, linear_assignment
 from boxmot.utils.ops import tlwh2xyah, xywh2tlwh, xywh2xyxy, xyxy2xywh
-from utils.show import Show
+# from utils.show import Show
 
 class STrack(BaseTrack):
     shared_kalman = ByteTrackKalmanFilterAdapter()
@@ -227,13 +227,12 @@ class  NanoTracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
-        # if len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) != len(dets_second):
-            # print(1)
+        # print(len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) == len(dets_second))
         dets = dets[remain_inds]
-        show = Show(None, img)
-        show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
-        show.observe_low_dets(occluded_dets_of_other, 2, img, self.frame_id)
-        show.observe_low_dets(occluded_dets_by_other, 1, img, self.frame_id)
+        # show = Show(None, img)
+        # show.observe_low_dets(non_occluded_dets, 0, img, self.frame_id)
+        # show.observe_low_dets(occluded_dets_of_other, 2, img, self.frame_id)
+        # show.observe_low_dets(occluded_dets_by_other, 1, img, self.frame_id)
         if len(dets) > 0:
             """Detections"""
             detections = [STrack(det) for det in dets]
@@ -284,9 +283,9 @@ class  NanoTracker(object):
             detections_third = [STrack(detections_second[i].det) for i in u_detection_second]
 
         rr_tracked_stracks = [ 
-            strack_pool[i]
+            r_tracked_stracks[i]
             for i in u_track
-            if strack_pool[i].state == TrackState.Tracked
+            if r_tracked_stracks[i].state == TrackState.Tracked
         ]
 
         matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
@@ -300,9 +299,9 @@ class  NanoTracker(object):
             detections_last = [STrack(detections_third[i].det) for i in u_detection_third]
 
         rrr_tracked_stracks = [ 
-            strack_pool[i]
+            rr_tracked_stracks[i]
             for i in u_track
-            if strack_pool[i].state == TrackState.Tracked
+            if rr_tracked_stracks[i].state == TrackState.Tracked
         ]
 
         matches, u_track, u_detection_last, activated_starcks, refind_stracks = self.associate(detections_last, rrr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
