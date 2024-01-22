@@ -173,6 +173,30 @@ class  NanoTracker(object):
             
         return np.array(non_occluded_dets), np.array(occluded_dets_by_other), np.array(occluded_dets_of_other)
 
+    def associate(self, detections, tracks, activated_starcks, refind_stracks, is_fuse, match_thresh):
+
+        dists = iou_distance(tracks, detections)
+
+        if is_fuse:
+            dists = fuse_score(dists, detections)
+        
+        matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
+            dists, thresh=match_thresh
+        )
+
+        for itracked, idet in matches:   # 在匹配上的轨迹中寻找是否为丢失的轨迹，如果是的话重新激活，不是的话就更新状态
+            track = tracks[itracked]
+            det = detections[idet]
+            if track.state == TrackState.Tracked:
+                track.update(detections[idet], self.frame_id)
+                activated_starcks.append(track)
+            else:
+                track.re_activate(det, self.frame_id, new_id=False)
+                refind_stracks.append(track)
+
+        return matches, u_track, u_detection, activated_starcks, refind_stracks
+
+
     def update(self, dets, img):
         assert isinstance(
             dets, np.ndarray
@@ -200,25 +224,17 @@ class  NanoTracker(object):
         dets_second = dets[inds_second]
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
         dets = dets[remain_inds]
-        if non_occluded_dets.size != 0:
-            dets = np.vstack((dets, non_occluded_dets))
-        if occluded_dets_by_other.size != 0 and occluded_dets_of_other.size != 0:
-            dets_second = np.vstack((occluded_dets_by_other, occluded_dets_of_other))
-        elif occluded_dets_by_other.size != 0:
-            dets_second = occluded_dets_by_other
-        elif occluded_dets_of_other.size != 0:
-            dets_second = occluded_dets_of_other
+
         if len(dets) > 0:
             """Detections"""
-            detections = [
-                STrack(det) for det in dets
-            ]
+            detections = [STrack(det) for det in dets]
         else:
             detections = []
 
         """ Add newly detected tracklets to tracked_stracks"""
         unconfirmed = []
         tracked_stracks = []  # type: list[STrack]
+
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -229,47 +245,54 @@ class  NanoTracker(object):
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)  # 将已有的轨迹和丢失的轨迹合并
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
-        dists = iou_distance(strack_pool, detections)
 
-        # if not self.args.mot20:
-        dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。 
-        matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
-            dists, thresh=self.match_thresh
-        )
-
-        for itracked, idet in matches:   # 在匹配上的轨迹中寻找是否为丢失的轨迹，如果是的话重新激活，不是的话就更新状态
-            track = strack_pool[itracked]
-            det = detections[idet]
-            if track.state == TrackState.Tracked:
-                track.update(detections[idet], self.frame_id)
-                activated_starcks.append(track)
-            else:
-                track.re_activate(det, self.frame_id, new_id=False)
-                refind_stracks.append(track)
+        matches, u_track, u_detection, activated_starcks, refind_stracks = self.associate(detections, strack_pool, activated_starcks, refind_stracks, True, self.match_thresh)
 
         """ Step 3: Second association, with low score detection boxes"""
-        # association the untrack to the low score detections
-        if len(dets_second) > 0:
-            """Detections"""
-            detections_second = [STrack(det_second) for det_second in dets_second]
-        else:
-            detections_second = []
+
+        # association the untrack to the non_occluded detections while is the low detections
+
         r_tracked_stracks = [   # 筛选没有匹配上的并且被激活的轨迹
             strack_pool[i]
             for i in u_track
             if strack_pool[i].state == TrackState.Tracked
         ]
-        dists = iou_distance(r_tracked_stracks, detections_second)
-        matches, u_track, u_detection_second = linear_assignment(dists, thresh=0.5)
-        for itracked, idet in matches:
-            track = r_tracked_stracks[itracked]
-            det = detections_second[idet]
-            if track.state == TrackState.Tracked:
-                track.update(det, self.frame_id)
-                activated_starcks.append(track)
-            else:
-                track.re_activate(det, self.frame_id, new_id=False)
-                refind_stracks.append(track)
+
+        if len(non_occluded_dets) > 0:
+            """Detections"""
+            detections_second = [STrack(det) for det in non_occluded_dets]
+        else:
+            detections_second = []
+
+        matches, u_track, u_detection_second, activated_starcks, refind_stracks = self.associate(detections_second, r_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
+        
+        if len(occluded_dets_by_other) > 0:
+            """Detections"""
+            detections_third = [STrack(det) for det in occluded_dets_by_other]
+        else:
+            detections_third = []
+
+        rr_tracked_stracks = [ 
+            strack_pool[i]
+            for i in u_track
+            if strack_pool[i].state == TrackState.Tracked
+        ]
+
+        matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
+
+        if len(occluded_dets_of_other) > 0:
+            """Detections"""
+            detections_last = [STrack(det) for det in occluded_dets_of_other]
+        else:
+            detections_last = []
+
+        rrr_tracked_stracks = [ 
+            strack_pool[i]
+            for i in u_track
+            if strack_pool[i].state == TrackState.Tracked
+        ]
+
+        matches, u_track, u_detection_last, activated_starcks, refind_stracks = self.associate(detections_last, rrr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
 
         for it in u_track:
             track = r_tracked_stracks[it]

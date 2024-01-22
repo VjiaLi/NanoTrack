@@ -205,11 +205,13 @@ class BYTETracker(object):
             detections_second = [STrack(det_second) for det_second in dets_second]
         else:
             detections_second = []
+
         r_tracked_stracks = [   # 筛选没有匹配上的并且被激活的轨迹
             strack_pool[i]
             for i in u_track
             if strack_pool[i].state == TrackState.Tracked
         ]
+
         dists = iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, u_detection_second = linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
@@ -229,7 +231,9 @@ class BYTETracker(object):
                 lost_stracks.append(track)
 
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
+
         detections = [detections[i] for i in u_detection]
+
         dists = iou_distance(unconfirmed, detections)
         # if not self.args.mot20:
         dists = fuse_score(dists, detections)
