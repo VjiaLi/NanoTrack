@@ -272,7 +272,7 @@ class  NanoTracker(object):
         else:
             detections_second = []
 
-        matches, u_track, u_detection_second, activated_starcks, refind_stracks = self.associate(detections_second, r_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
+        matches, u_track, u_detection_second, activated_starcks, refind_stracks = self.associate(detections_second, r_tracked_stracks, activated_starcks, refind_stracks, True, 0.5)
 
         if len(occluded_dets_by_other) > 0:
             """Detections"""
@@ -288,7 +288,7 @@ class  NanoTracker(object):
             if r_tracked_stracks[i].state == TrackState.Tracked
         ]
 
-        matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
+        matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, True, 0.5)
         
         if len(occluded_dets_of_other) > 0:
             """Detections"""
