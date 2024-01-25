@@ -195,7 +195,7 @@ class STrack(BaseTrack):
 
 
 class SparseTracker(object):
-    def __init__(self, track_thresh = 0.45, match_thresh = 0.8, confirm_thresh = 0.5,track_buffer = 25, down_scale = 4 , depth_levels = 1, depth_levels_low = 3,frame_rate = 30):
+    def __init__(self, track_thresh = 0.45, match_thresh = 0.8, confirm_thresh = 0.7,track_buffer = 25, down_scale = 4 , depth_levels = 1, depth_levels_low = 3,frame_rate = 30):
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
@@ -397,7 +397,7 @@ class SparseTracker(object):
                                                                                 activated_starcks, 
                                                                                 refind_stracks, 
                                                                                 self.depth_levels_low, 
-                                                                                0.3, 
+                                                                                0.5, 
                                                                                 is_fuse=False) 
         for track in u_strack:
             if not track.state == TrackState.Lost:

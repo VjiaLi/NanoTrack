@@ -1,7 +1,7 @@
 track_thresh: 0.45  # tracking confidence threshold, should be the same as model conf
 track_buffer: 30   # the frames for keep lost tracks
 match_thresh: 0.8  # matching threshold for tracking
-confirm_thresh: 0.8
+confirm_thresh: 0.7
 down_scale: 4
 depth_levels: 1
 depth_levels_low: 3
