@@ -22,8 +22,8 @@ def parse_args():
     parser.add_argument(
         "--demo", default="video", help="demo type, eg. image, video"
     )
-    parser.add_argument('--tracking-method', type=str, default='bytetrack',
-                        help='deepocsort, botsort, strongsort, ocsort, bytetrack')
+    parser.add_argument('--tracking-method', type=str, default='sparsetrack',
+                        help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
     parser.add_argument("--config", help="model config file path", default= CONFIG / 'nanodet-plus-m_416.yml')
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
     parser.add_argument('--reid-model', type=Path, default=WEIGHTS / 'osnet_x0_25_msmt17.pt',
