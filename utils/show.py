@@ -12,7 +12,7 @@ class Show:
         self.lw = max(round(sum(self.img.shape) / 2 * 0.003), 2)
         self.tf = max(self.lw - 1, 1)
     
-    def observe_low_dets(self, dets, i, im, frame):
+    def observe_dets(self, dets, i, im, frame , path):
         if dets.shape[0] != 0:
             xyxys = dets[:, 0:4].astype('int') # float64 to int
             confs = dets[:, 4]
@@ -40,8 +40,42 @@ class Show:
                     self.tf,
                     lineType=cv2.LINE_AA
                 )
-            cv2.imwrite(f'C:\\Users\\Lenovo\\Desktop\\Nanotrack\\runs\\test\\{frame}.jpg',im)  
-         
+            if not os.path.exists(path):
+                os.makedirs(path)
+            cv2.imwrite(f'{path}\\{frame}.jpg',im)  
+    
+    def observe_tracks(self, tracks, i, im, frame , path):
+        if len(tracks) != 0:
+            for track in tracks:
+                xyxy = track.xyxy.astype('int') # float64 to int
+                conf = track.score
+                id = track.track_id
+                p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
+                im = cv2.rectangle(
+                    self.img,
+                    (xyxy[0], xyxy[1]),
+                    (xyxy[2], xyxy[3]),
+                    color[i],
+                    self.lw,
+                    cv2.LINE_AA
+                )
+                w, h = cv2.getTextSize(f'id: {id}, conf:{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
+                outside = p1[1] - h >= 3
+                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                cv2.rectangle(im, p1, p2, color[i], -1, cv2.LINE_AA)  # filled
+                cv2.putText(
+                    im,
+                    f'id: {id}, conf:{round(conf,2)}',
+                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    0,
+                    self.lw / 3,
+                    text_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA
+                )
+            if not os.path.exists(path):
+                os.makedirs(path)
+            cv2.imwrite(f'{path}\\{frame}.jpg',im)  
 
     def show_dets(self, dets):
         xyxys = dets[:, 0:4].astype('int') # float64 to int

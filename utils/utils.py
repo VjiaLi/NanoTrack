@@ -67,3 +67,17 @@ def get_image_list(path):
             if ext in image_ext:
                 image_names.append(apath)
     return image_names
+
+def jpg_to_mp4():
+    video_writer = cv2.VideoWriter(r"C:\Users\Lenovo\Desktop\yolo_tracking-master\MOT16_Video\mot13.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 25, (1920, 1080))
+    images_path = r"E:\Data\MOT16\train\MOT16-13\img1"
+    images_list = os.listdir(images_path)
+    images_list.sort()
+
+    for image_name in images_list:
+        image = cv2.imread(os.path.join(images_path, image_name))
+        video_writer.write(image)
+
+
+if __name__ == '__main__':
+    jpg_to_mp4()

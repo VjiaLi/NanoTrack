@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument(
         "--demo", default="video", help="demo type, eg. image, video"
     )
-    parser.add_argument('--tracking-method', type=str, default='sparsetrack',
+    parser.add_argument('--tracking-method', type=str, default='bytetrack',
                         help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
     parser.add_argument("--config", help="model config file path", default= CONFIG / 'nanodet-plus-m_416.yml')
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
@@ -43,7 +43,7 @@ def parse_args():
                         help='existing project/name ok, do not increment')
     parser.add_argument('--save', action='store_true',
                         help='save video tracking results')
-    parser.add_argument('--show', action='store_false',
+    parser.add_argument('--show', action='store_true',
                         help='display tracking video results')
     parser.add_argument('--per-class', default=False, action='store_true',
                         help='not mix up classes when tracking')
@@ -147,7 +147,8 @@ def main():
                             all_box.append([x0, y0, x1, y1, score, label])
 
                 dets = np.array(all_box)
-                
+                if dets.shape[0] == 0:
+                    continue
                 if args.only_detect:
                     show.show_dets(dets)
                 else:

@@ -1,12 +1,16 @@
 # VJia Li 🔥 Nano Tracking
 
 import numpy as np
+import copy
 
 from boxmot.motion.kalman_filters.adapters import ByteTrackKalmanFilterAdapter
 from boxmot.trackers.bytetrack.basetrack import BaseTrack, TrackState
 from boxmot.utils.matching import fuse_score, iou_distance, linear_assignment
 from boxmot.utils.ops import tlwh2xyah, xywh2tlwh, xywh2xyxy, xyxy2xywh
-import matplotlib.pyplot as plt
+from boxmot.utils import RESULT
+from utils.show import Show
+from track import parse_args
+
 
 
 class STrack(BaseTrack):
@@ -147,7 +151,7 @@ class BYTETracker(object):
         lost_stracks = []
         removed_stracks = []
         confs = dets[:, 4]
-
+        args = parse_args()   
         remain_inds = confs > self.track_thresh   # 取高分检测框
 
         inds_low = confs > 0.1 
@@ -155,7 +159,14 @@ class BYTETracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         dets = dets[remain_inds]
-
+        im1 = img.copy()
+        im2 = img.copy()
+        im3 = img.copy()
+        show1 = Show(args, im1)
+        show2 = Show(args, im2)
+        # show3 = Show(args, im3)
+        show1.observe_dets(dets, 0, im1, self.frame_id, str(RESULT / 'hight_dets'))
+        show1.observe_dets(dets_second, 1, im1, self.frame_id, str(RESULT / 'low_dets'))
         if len(dets) > 0:
             """Detections"""
             detections = [
@@ -175,15 +186,16 @@ class BYTETracker(object):
 
         """ Step 2: First association, with high score detection boxes"""
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)  # 将已有的轨迹和丢失的轨迹合并
+
+        show1.observe_tracks(strack_pool, 2, im1, self.frame_id, str(RESULT / 'tracks'))
+        
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
         dists = iou_distance(strack_pool, detections)
 
         # if not self.args.mot20:
         dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。
-        # plt.imshow(dists, cmap='hot', vmin=0, vmax=1, interpolation='nearest')
-        # plt.colorbar()
-        # plt.show()        
+
         matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
             dists, thresh=self.match_thresh
         )
@@ -247,12 +259,14 @@ class BYTETracker(object):
             removed_stracks.append(track)
 
         """ Step 4: Init new stracks"""
+        
         for inew in u_detection:
             track = detections[inew]
             if track.score < self.det_thresh:
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
+
         """ Step 5: Update state"""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:

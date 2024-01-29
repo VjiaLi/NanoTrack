@@ -165,7 +165,7 @@ class  NanoTracker(object):
 
             # 根据判定结果添加到相应的列表中
             if is_non_occluded:
-                non_occluded_dets.append(det)
+                occluded_dets_by_other.append(det)
                 continue
             if occluded_of_other:
                 occluded_dets_of_other.append(det)
@@ -227,6 +227,7 @@ class  NanoTracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         non_occluded_dets , occluded_dets_by_other, occluded_dets_of_other = self.split_low_dets(dets_second)
+
         # print(len(non_occluded_dets)+len(occluded_dets_by_other)+len(occluded_dets_of_other) == len(dets_second))
         dets = dets[remain_inds]
         # show = Show(None, img)
@@ -265,22 +266,23 @@ class  NanoTracker(object):
             for i in u_track
             if strack_pool[i].state == TrackState.Tracked
         ]
-
-        if len(non_occluded_dets) > 0:
+        """
+        """
+        if len(occluded_dets_by_other) > 0:
             """Detections"""
-            detections_second = [STrack(det) for det in non_occluded_dets]
+            detections_second = [STrack(det) for det in occluded_dets_by_other]
         else:
             detections_second = []
 
         matches, u_track, u_detection_second, activated_starcks, refind_stracks = self.associate(detections_second, r_tracked_stracks, activated_starcks, refind_stracks, True, 0.5)
 
-        if len(occluded_dets_by_other) > 0:
+        if len(occluded_dets_of_other) > 0:
             """Detections"""
             for i in u_detection_second:
-                occluded_dets_by_other = np.vstack((occluded_dets_by_other, detections_second[i].det))
-            detections_third = [STrack(det) for det in occluded_dets_by_other]
+                occluded_dets_of_other = np.vstack((occluded_dets_of_other, detections_second[i].det))
+            detections_last = [STrack(det) for det in occluded_dets_of_other]
         else:
-            detections_third = [STrack(detections_second[i].det) for i in u_detection_second]
+            detections_last = [STrack(detections_second[i].det) for i in u_detection_second]
 
         rr_tracked_stracks = [ 
             r_tracked_stracks[i]
@@ -288,26 +290,10 @@ class  NanoTracker(object):
             if r_tracked_stracks[i].state == TrackState.Tracked
         ]
 
-        matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_third, rr_tracked_stracks, activated_starcks, refind_stracks, True, 0.5)
-        
-        if len(occluded_dets_of_other) > 0:
-            """Detections"""
-            for i in u_detection_third:
-                occluded_dets_of_other = np.vstack((occluded_dets_of_other, detections_third[i].det))
-            detections_last = [STrack(det) for det in occluded_dets_of_other]
-        else:
-            detections_last = [STrack(detections_third[i].det) for i in u_detection_third]
-
-        rrr_tracked_stracks = [ 
-            rr_tracked_stracks[i]
-            for i in u_track
-            if rr_tracked_stracks[i].state == TrackState.Tracked
-        ]
-
-        matches, u_track, u_detection_last, activated_starcks, refind_stracks = self.associate(detections_last, rrr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
+        matches, u_track, u_detection_third, activated_starcks, refind_stracks = self.associate(detections_last, rr_tracked_stracks, activated_starcks, refind_stracks, False, 0.5)
 
         for it in u_track:
-            track = rrr_tracked_stracks[it]
+            track = rr_tracked_stracks[it]
             if not track.state == TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)

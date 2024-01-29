@@ -10,6 +10,7 @@ ROOT = FILE.parents[2]  # root directory
 WEIGHTS = ROOT / 'weights'
 CONFIG = ROOT / 'config'
 BOXMOT = ROOT / "boxmot"
+RESULT = ROOT / "runs" / "test"
 REQUIREMENTS = ROOT / "requirements.txt"
 
 # global logger
