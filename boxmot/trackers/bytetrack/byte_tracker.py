@@ -159,14 +159,14 @@ class BYTETracker(object):
         inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
         dets_second = dets[inds_second]
         dets = dets[remain_inds]
-        im1 = img.copy()
-        im2 = img.copy()
-        im3 = img.copy()
-        show1 = Show(args, im1)
-        show2 = Show(args, im2)
+        #im1 = img.copy()
+        #im2 = img.copy()
+        #im3 = img.copy()
+        #show1 = Show(args, im1)
+        #show2 = Show(args, im2)
         # show3 = Show(args, im3)
-        show1.observe_dets(dets, 0, im1, self.frame_id, str(RESULT / 'hight_dets'))
-        show1.observe_dets(dets_second, 1, im1, self.frame_id, str(RESULT / 'low_dets'))
+        #show1.observe_dets(dets, 0, im1, self.frame_id, str(RESULT / 'hight_dets'))
+        #show1.observe_dets(dets_second, 1, im1, self.frame_id, str(RESULT / 'low_dets'))
         if len(dets) > 0:
             """Detections"""
             detections = [
@@ -187,7 +187,7 @@ class BYTETracker(object):
         """ Step 2: First association, with high score detection boxes"""
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)  # 将已有的轨迹和丢失的轨迹合并
 
-        show1.observe_tracks(strack_pool, 2, im1, self.frame_id, str(RESULT / 'tracks'))
+        # show1.observe_tracks(strack_pool, 2, im1, self.frame_id, str(RESULT / 'tracks'))
         
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
@@ -243,8 +243,10 @@ class BYTETracker(object):
                 lost_stracks.append(track)
 
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
-
+   
         detections = [detections[i] for i in u_detection]
+        for i in u_detection_second:
+            detections.append(detections_second[i])
 
         dists = iou_distance(unconfirmed, detections)
         # if not self.args.mot20:
