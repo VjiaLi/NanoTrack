@@ -12,7 +12,7 @@ class Show:
         self.lw = max(round(sum(self.img.shape) / 2 * 0.003), 2)
         self.tf = max(self.lw - 1, 1)
     
-    def observe_dets(self, dets, i, im, frame , path):
+    def byte_dets(self, dets, color, im, frame , path):
         if dets.shape[0] != 0:
             xyxys = dets[:, 0:4].astype('int') # float64 to int
             confs = dets[:, 4]
@@ -22,14 +22,14 @@ class Show:
                     self.img,
                     (xyxy[0], xyxy[1]),
                     (xyxy[2], xyxy[3]),
-                    color[i],
+                    color[color],
                     self.lw,
                     cv2.LINE_AA
                 )
                 w, h = cv2.getTextSize(f'{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                cv2.rectangle(im, p1, p2, color[i], -1, cv2.LINE_AA)  # filled
+                cv2.rectangle(im, p1, p2, color[color], -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     im,
                     f'{round(conf,2)}',
@@ -44,7 +44,7 @@ class Show:
                 os.makedirs(path)
             cv2.imwrite(f'{path}\\{frame}.jpg',im)  
     
-    def observe_tracks(self, tracks, i, im, frame , path):
+    def byte_tracks(self, tracks, color, im, frame , path):
         if len(tracks) != 0:
             for track in tracks:
                 xyxy = track.xyxy.astype('int') # float64 to int
@@ -55,14 +55,14 @@ class Show:
                     self.img,
                     (xyxy[0], xyxy[1]),
                     (xyxy[2], xyxy[3]),
-                    color[i],
+                    color[color],
                     self.lw,
                     cv2.LINE_AA
                 )
                 w, h = cv2.getTextSize(f'id: {id}, conf:{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                cv2.rectangle(im, p1, p2, color[i], -1, cv2.LINE_AA)  # filled
+                cv2.rectangle(im, p1, p2, color[color], -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     im,
                     f'id: {id}, conf:{round(conf,2)}',
@@ -76,6 +76,40 @@ class Show:
             if not os.path.exists(path):
                 os.makedirs(path)
             cv2.imwrite(f'{path}\\{frame}.jpg',im)  
+
+    def sparse_dets(self, dets, color_id, im, frame, path):
+        if len(dets) != 0:
+            for det in dets:
+                tlbr = det.tlbr.astype('int')
+                score = det.score
+                p1, p2 = (int(tlbr[0]), int(tlbr[1])), (int(tlbr[2]), int(tlbr[3]))
+                im = cv2.rectangle(
+                    self.img,
+                    (tlbr[0], tlbr[1]),
+                    (tlbr[2], tlbr[3]),
+                    color[color_id],
+                    self.lw,
+                    cv2.LINE_AA
+                )
+                w, h = cv2.getTextSize(f'conf:{round(score,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
+                outside = p1[1] - h >= 3
+                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                cv2.rectangle(im, p1, p2, color[color_id], -1, cv2.LINE_AA)  # filled
+                cv2.putText(
+                    im,
+                    f'conf:{round(score,2)}',
+                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    0,
+                    self.lw / 3,
+                    text_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA
+                )
+            if not os.path.exists(path):
+                os.makedirs(path)
+            cv2.imwrite(f'{path}\\{frame}.jpg',im)
+
+
 
     def show_dets(self, dets):
         xyxys = dets[:, 0:4].astype('int') # float64 to int

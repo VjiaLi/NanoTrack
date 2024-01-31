@@ -4,6 +4,6 @@ match_thresh: 0.8  # matching threshold for tracking
 confirm_thresh: 0.7
 down_scale: 4
 depth_levels: 1
-depth_levels_low: 3
+depth_levels_low: 5
 frame_rate: 30     # FPS
 conf_thres: 0.5122620708221085

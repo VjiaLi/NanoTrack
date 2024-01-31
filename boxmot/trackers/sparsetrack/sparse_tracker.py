@@ -3,6 +3,9 @@ import numpy as np
 from .kalman_filter import KalmanFilter
 from .matching import *
 from .basetrack import BaseTrack, TrackState
+from boxmot.utils import RESULT
+from track import parse_args
+from utils.show import Show
 
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
@@ -249,7 +252,7 @@ class SparseTracker(object):
                 continue
         return mask
     
-    def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, is_fuse):
+    def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
         if len(detections) > 0:
             det_mask = self.get_deep_range(detections, levels) 
         else:
@@ -262,6 +265,16 @@ class SparseTracker(object):
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
+            if stage == 2:
+                args = parse_args()
+                show1 = Show(args, curr_img)
+                for i in range(len(det_mask)):
+                    dets = []
+                    idx  = np.argwhere(det_mask[i] == True)
+                    for idd in idx:
+                        dets.append(detections[idd[0]])
+                    show1.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det'))
+                
             if  len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
                     idx = np.argwhere(det_mask[len(track_mask) + i] == True)
@@ -272,7 +285,7 @@ class SparseTracker(object):
                     idx = np.argwhere(track_mask[len(det_mask) + i] == True)
                     for idd in idx:
                         res_track.append(tracks[idd[0]])
-        
+
             for dm, tm in zip(det_mask, track_mask):
                 det_idx = np.argwhere(dm == True)
                 trk_idx = np.argwhere(tm == True)
@@ -304,7 +317,7 @@ class SparseTracker(object):
                         refind_stracks.append(track)
                 u_tracks = [track_[t] for t in u_track_]
                 u_detection = [det_[t] for t in u_det_]
-                
+
             u_tracks = u_tracks + res_track
             u_detection = u_detection + res_det
 
@@ -353,6 +366,7 @@ class SparseTracker(object):
             detections = [STrack(det) for det in dets]   
         else:
             detections = []
+
         # get strack_pool   
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
         
@@ -378,7 +392,10 @@ class SparseTracker(object):
                                                                                 activated_starcks,
                                                                                 refind_stracks, 
                                                                                 self.layers, 
-                                                                                self.match_thresh, 
+                                                                                self.match_thresh,
+                                                                                curr_img,
+                                                                                1,
+                                                                                self.frame_id, 
                                                                                 is_fuse=True)  
         
             
@@ -398,7 +415,11 @@ class SparseTracker(object):
                                                                                 refind_stracks, 
                                                                                 self.depth_levels_low, 
                                                                                 0.5, 
-                                                                                is_fuse=False) 
+                                                                                curr_img,
+                                                                                2,
+                                                                                self.frame_id,
+                                                                                is_fuse=False,
+                                                                                ) 
         for track in u_strack:
             if not track.state == TrackState.Lost:
                 track.mark_lost()
