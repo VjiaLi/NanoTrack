@@ -223,17 +223,17 @@ class SparseTracker(object):
 
         for i, obj in enumerate(objs):
             tmp = []   
-            
-            x1, y1, x2, y2 = obj.tlbr() 
+
+            x1, y1, x2, y2 = obj.tlbr
             
             if vis[i]:
                 continue
 
             tmp.append(obj)
             
-            for j,other_obj in enumerate(objs):
+            for j, other_obj in enumerate(objs):
 
-                other_x1, other_y1, other_x2, other_y2 = other_obj.tlbr()
+                other_x1, other_y1, other_x2, other_y2 = other_obj.tlbr
                 
                 if i == j or vis[j]:
                     continue  # 跳过该检测框
@@ -245,7 +245,7 @@ class SparseTracker(object):
                     vis[j] = True
 
             res_objs.append(tmp)
-
+        print(res_objs)
         return res_objs
     
     def get_deep_range(self, obj, step):
@@ -416,6 +416,7 @@ class SparseTracker(object):
         STrack.multi_gmc(unconfirmed, warp[:2, :])
         """
 
+
         # DCM
         activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(
                                                                                 detections, 
@@ -438,6 +439,7 @@ class SparseTracker(object):
             detections_second = []
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]   
         
+
         # DCM
         activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
                                                                                 detections_second, 

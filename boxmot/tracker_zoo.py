@@ -126,7 +126,7 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
         return nanotracker
 
     elif tracker_type == 'sparsetrack':
-        from boxmot.trackers.sparsetrack.sparse_tracker import SparseTracker
+        from boxmot.trackers.sparsetrack.sparse_track_new import SparseTracker
         
         sparsetracker = SparseTracker(
             track_thresh=cfg.track_thresh,
