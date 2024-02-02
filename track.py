@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
     parser.add_argument('--reid-model', type=Path, default=WEIGHTS / 'osnet_x0_25_msmt17.pt',
                         help='reid model path')
-    parser.add_argument("--path", default=r"C:\Users\Lenovo\Desktop\yolo_tracking-master\MOT16_Video\result1.mp4", help="path to images or video")
+    parser.add_argument("--path", default=r"C:\Users\Lenovo\Desktop\yolo_tracking-master\MOT16_Video\result.mp4", help="path to images or video")
     parser.add_argument('--conf', type=float, default=0.3,
                         help='confidence threshold')
     parser.add_argument('--only-detect', action='store_true',
