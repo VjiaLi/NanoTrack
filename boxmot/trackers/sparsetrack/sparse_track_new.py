@@ -14,7 +14,7 @@ class STrack(BaseTrack):
         self.score = det[4]
         self.cls = det[5]
         self.det_ind = det[6]
-
+        
         # wait activate
         self._tlwh = np.asarray(self.tlbr_to_tlwh(det[0:4]), dtype=np.float)
         self.kalman_filter = None
@@ -216,36 +216,37 @@ class SparseTracker(object):
         self.layers = depth_levels 
         self.depth_levels_low = depth_levels_low
 
-    def preprocess(self, low_dets):
-        res_dets = []
+    def preprocess(self, objs):
+        res_objs = []
         
-        vis = [False for _ in range(len(low_dets))]
+        vis = [False for _ in range(len(objs))]
 
-        for i, det in enumerate(low_dets):
+        for i, obj in enumerate(objs):
             tmp = []   
             
-            x1, y1, x2, y2, conf, _, ind = det
+            x1, y1, x2, y2 = obj.tlbr() 
             
             if vis[i]:
                 continue
 
-            tmp.append(det)
+            tmp.append(obj)
             
-            for j,other_det in enumerate(low_dets):
+            for j,other_obj in enumerate(objs):
 
-                other_x1, other_y1, other_x2, other_y2, other_conf, _, other_ind = other_det
+                other_x1, other_y1, other_x2, other_y2 = other_obj.tlbr()
                 
-                if ind == other_ind:
+                if i == j or vis[j]:
                     continue  # 跳过该检测框
 
                 overlap = not (x2 < other_x1 or other_x2 < x1 or y2 < other_y1 or other_y2 < y1)
 
                 if overlap:
-                    tmp.append(other_det)
+                    tmp.append(other_obj)
                     vis[j] = True
 
-            res_dets.append(tmp)
-        return res_dets
+            res_objs.append(tmp)
+
+        return res_objs
     
     def get_deep_range(self, obj, step):
         col = []
