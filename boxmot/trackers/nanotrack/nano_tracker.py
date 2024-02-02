@@ -129,38 +129,6 @@ class  NanoTracker(object):
         self.max_time_lost = self.buffer_size
         self.kalman_filter = ByteTrackKalmanFilterAdapter()
 
-    def preprocess(self, low_dets):
-        res_dets = []
-        
-        vis = [False for _ in range(len(low_dets))]
-
-        for i, det in enumerate(low_dets):
-            tmp = []   
-            
-            x1, y1, x2, y2, conf, _, ind = det
-            
-            if vis[i]:
-                continue
-
-            tmp.append(det)
-            
-            for j,other_det in enumerate(low_dets):
-
-                other_x1, other_y1, other_x2, other_y2, other_conf, _, other_ind = other_det
-                
-                if ind == other_ind:
-                    continue  # 跳过该检测框
-
-                overlap = not (x2 < other_x1 or other_x2 < x1 or y2 < other_y1 or other_y2 < y1)
-
-                if overlap:
-                    tmp.append(other_det)
-                    vis[j] = True
-
-            res_dets.append(tmp)
-        return res_dets
-
-
     def split_low_dets(self, low_dets):
         # 创建一个列表用于存储不同遮挡情况的检测框
         non_occluded_dets = []
