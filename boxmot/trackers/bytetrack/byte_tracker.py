@@ -164,7 +164,7 @@ class BYTETracker(object):
         #im3 = img.copy()
         #show1 = Show(args, im1)
         #show2 = Show(args, im2)
-        # show3 = Show(args, im3)
+        #show3 = Show(args, im3)
         #show1.observe_dets(dets, 0, im1, self.frame_id, str(RESULT / 'hight_dets'))
         #show1.observe_dets(dets_second, 1, im1, self.frame_id, str(RESULT / 'low_dets'))
         if len(dets) > 0:

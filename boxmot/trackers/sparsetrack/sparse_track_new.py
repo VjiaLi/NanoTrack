@@ -196,6 +196,55 @@ class STrack(BaseTrack):
     def __repr__(self):
         return 'OT_{}_({}-{})'.format(self.track_id, self.start_frame, self.end_frame)
 
+class BoundingBoxProcessor:
+    def __init__(self):
+        self.parent = {}
+        self.rank = {}
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])  # Path compression
+        return self.parent[x]
+
+    def union(self, x, y):
+        root_x = self.find(x)
+        root_y = self.find(y)
+
+        if root_x != root_y:
+            # Union by rank for balancing the tree
+            if self.rank[root_x] < self.rank[root_y]:
+                self.parent[root_x] = root_y
+            elif self.rank[root_x] > self.rank[root_y]:
+                self.parent[root_y] = root_x
+            else:
+                self.parent[root_x] = root_y
+                self.rank[root_y] += 1
+
+    def preprocess(self, objs):
+        self.parent = {i: i for i in range(len(objs))}
+        self.rank = {i: 0 for i in range(len(objs))}
+        res_objs = []
+
+        for i, obj in enumerate(objs):
+            x1, y1, x2, y2 = obj.tlbr
+
+            for j, other_obj in enumerate(objs[i + 1:]):
+                other_x1, other_y1, other_x2, other_y2 = other_obj.tlbr
+                overlap = not (x2 < other_x1 or other_x2 < x1 or y2 < other_y1 or other_y2 < y1)
+
+                if overlap:
+                    self.union(i, i + 1 + j)
+
+        components = {}
+        for i in range(len(objs)):
+            root = self.find(i)
+            if root not in components:
+                components[root] = []
+            components[root].append(objs[i])
+
+        res_objs = list(components.values())
+        return res_objs
+
 class SparseTracker(object):
     def __init__(self, track_thresh = 0.45, match_thresh = 0.8, confirm_thresh = 0.7,track_buffer = 25, down_scale = 4 , depth_levels = 1, depth_levels_low = 3,frame_rate = 30):
         self.tracked_stracks = []  # type: list[STrack]
@@ -212,41 +261,10 @@ class SparseTracker(object):
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
+        self.preprocessor = BoundingBoxProcessor()
         self.down_scale = down_scale
         self.layers = depth_levels 
         self.depth_levels_low = depth_levels_low
-
-    def preprocess(self, objs):
-        res_objs = []
-        
-        vis = [False for _ in range(len(objs))]
-
-        for i, obj in enumerate(objs):
-            tmp = []   
-
-            x1, y1, x2, y2 = obj.tlbr
-            
-            if vis[i]:
-                continue
-
-            tmp.append(obj)
-            
-            for j, other_obj in enumerate(objs):
-
-                other_x1, other_y1, other_x2, other_y2 = other_obj.tlbr
-                
-                if i == j or vis[j]:
-                    continue  # 跳过该检测框
-
-                overlap = not (x2 < other_x1 or other_x2 < x1 or y2 < other_y1 or other_y2 < y1)
-
-                if overlap:
-                    tmp.append(other_obj)
-                    vis[j] = True
-
-            res_objs.append(tmp)
-        #print(res_objs)
-        return res_objs
     
     def get_deep_range(self, objs, step, objs_ori):
         final_mask = [np.array([False] * len(objs_ori)) for _ in range(step)]
@@ -296,30 +314,28 @@ class SparseTracker(object):
     
     def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
         if len(detections) > 0:
-            detections_pro = self.preprocess(detections)
+            detections_pro = self.preprocessor.preprocess(detections)
             det_mask = self.get_deep_range(detections_pro, levels, detections) 
         else:
             det_mask = []
 
         if len(tracks)!=0:
-            tracks_pro = self.preprocess(tracks)
+            tracks_pro = self.preprocessor.preprocess(tracks)
             track_mask = self.get_deep_range(tracks_pro, levels, tracks)
         else:
             track_mask = []
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
-            """
             if stage == 2:
                 args = parse_args()
-                show1 = Show(args, curr_img)
+                show2 = Show(args, curr_img)
                 for i in range(len(det_mask)):
                     dets = []
                     idx  = np.argwhere(det_mask[i] == True)
                     for idd in idx:
                         dets.append(detections[idd[0]])
-                    show1.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det'))
-            """
+                    show2.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det1'))
             if  len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
                     idx = np.argwhere(det_mask[len(track_mask) + i] == True)
@@ -452,6 +468,12 @@ class SparseTracker(object):
             detections_second = []
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]   
         
+        detections_show = self.preprocessor.preprocess(detections_second)
+        args = parse_args()
+        show1 = Show(args, curr_img)
+        for i, dets_show in enumerate(detections_show):
+            show1.sparse_dets(dets_show, i, curr_img, self.frame_id, str(RESULT/ 'sparse_det'))
+
         # DCM
         activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
                                                                                 detections_second, 

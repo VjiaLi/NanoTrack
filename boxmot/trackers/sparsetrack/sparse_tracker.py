@@ -265,6 +265,7 @@ class SparseTracker(object):
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
+            """
             if stage == 2:
                 args = parse_args()
                 show1 = Show(args, curr_img)
@@ -274,6 +275,7 @@ class SparseTracker(object):
                     for idd in idx:
                         dets.append(detections[idd[0]])
                     show1.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det'))
+            """
                 
             if  len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
