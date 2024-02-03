@@ -245,25 +245,36 @@ class SparseTracker(object):
                     vis[j] = True
 
             res_objs.append(tmp)
-        print(res_objs)
+        #print(res_objs)
         return res_objs
     
-    def get_deep_range(self, obj, step):
-        col = []
-        for t in obj:
-            lend = (t.deep_vec)[2]
-            col.append(lend)
-        max_len, mix_len = max(col), min(col)
-        if max_len != mix_len:
-            deep_range =np.arange(mix_len, max_len, (max_len - mix_len + 1) / step)
-            if deep_range[-1] < max_len:
-                deep_range = np.concatenate([deep_range, np.array([max_len],)])
-                deep_range[0] = np.floor(deep_range[0])
-                deep_range[-1] = np.ceil(deep_range[-1])
-        else:    
-            deep_range = [mix_len,] 
-        mask = self.get_sub_mask(deep_range, col)      
-        return mask
+    def get_deep_range(self, objs, step, objs_ori):
+        final_mask = [np.array([False] * len(objs_ori)) for _ in range(step)]
+        #print(final_mask)
+        for obj in objs:
+            col = []
+            for t in obj:
+                lend = (t.deep_vec)[2]
+                col.append(lend)
+            max_len, mix_len = max(col), min(col)
+            if max_len != mix_len:
+                deep_range =np.arange(mix_len, max_len, (max_len - mix_len + 1) / step)
+                if deep_range[-1] < max_len:
+                    deep_range = np.concatenate([deep_range, np.array([max_len],)])
+                    deep_range[0] = np.floor(deep_range[0])
+                    deep_range[-1] = np.ceil(deep_range[-1])
+            else:    
+                deep_range = [mix_len,] 
+            masks = self.get_sub_mask(deep_range, col)     
+
+            for j, mask in enumerate(masks):
+                idx = np.argwhere(mask == True)
+                for idd in idx:
+                    det = obj[idd[0]]
+                    index = objs_ori.index(det)
+                    final_mask[j][index] = True
+        #print(final_mask)
+        return final_mask
     
     def get_sub_mask(self, deep_range, col):
         mix_len=deep_range[0]
@@ -285,12 +296,14 @@ class SparseTracker(object):
     
     def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
         if len(detections) > 0:
-            det_mask = self.get_deep_range(detections, levels) 
+            detections_pro = self.preprocess(detections)
+            det_mask = self.get_deep_range(detections_pro, levels, detections) 
         else:
             det_mask = []
 
         if len(tracks)!=0:
-            track_mask = self.get_deep_range(tracks, levels)
+            tracks_pro = self.preprocess(tracks)
+            track_mask = self.get_deep_range(tracks_pro, levels, tracks)
         else:
             track_mask = []
 
@@ -416,7 +429,6 @@ class SparseTracker(object):
         STrack.multi_gmc(unconfirmed, warp[:2, :])
         """
 
-
         # DCM
         activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(
                                                                                 detections, 
@@ -439,7 +451,6 @@ class SparseTracker(object):
             detections_second = []
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]   
         
-
         # DCM
         activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
                                                                                 detections_second, 
