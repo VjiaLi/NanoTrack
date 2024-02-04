@@ -327,6 +327,7 @@ class SparseTracker(object):
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
+            """
             if stage == 2:
                 args = parse_args()
                 show2 = Show(args, curr_img)
@@ -336,6 +337,7 @@ class SparseTracker(object):
                     for idd in idx:
                         dets.append(detections[idd[0]])
                     show2.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det1'))
+            """
             if  len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
                     idx = np.argwhere(det_mask[len(track_mask) + i] == True)
@@ -467,12 +469,13 @@ class SparseTracker(object):
         else:
             detections_second = []
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]   
-        
+        """
         detections_show = self.preprocessor.preprocess(detections_second)
         args = parse_args()
         show1 = Show(args, curr_img)
         for i, dets_show in enumerate(detections_show):
             show1.sparse_dets(dets_show, i, curr_img, self.frame_id, str(RESULT/ 'sparse_det'))
+        """
 
         # DCM
         activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(

@@ -12,7 +12,7 @@ from nanodet.data.collate import naive_collate
 from nanodet.data.transform import Pipeline
 from nanodet.model.arch import build_model
 from nanodet.util import Logger, cfg, load_config, load_model_weight
-from boxmot.utils import ROOT, WEIGHTS, CONFIG
+from boxmot.utils import ROOT, WEIGHTS, CONFIG, VIDEO
 from boxmot.tracker_zoo import create_tracker
 from utils.utils import create_exp
 from utils.show import Show
@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
     parser.add_argument('--reid-model', type=Path, default=WEIGHTS / 'osnet_x0_25_msmt17.pt',
                         help='reid model path')
-    parser.add_argument("--path", default=r"C:\Users\Lenovo\Desktop\yolo_tracking-master\MOT16_Video\result1.mp4", help="path to images or video")
+    parser.add_argument("--path", default=VIDEO / 'mot02.mp4', help="path to images or video")
     parser.add_argument('--conf', type=float, default=0.3,
                         help='confidence threshold')
     parser.add_argument('--only-detect', action='store_true',
