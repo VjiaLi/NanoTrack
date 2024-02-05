@@ -1,7 +1,6 @@
 # VJia Li 🔥 Nano Tracking
 
 import numpy as np
-import copy
 
 from boxmot.motion.kalman_filters.adapters import ByteTrackKalmanFilterAdapter
 from boxmot.trackers.bytetrack.basetrack import BaseTrack, TrackState

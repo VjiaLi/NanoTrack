@@ -254,7 +254,7 @@ class SparseTracker(object):
         self.frame_id = 0
  
         self.track_thresh = track_thresh
-        self.det_thresh = track_thresh
+        self.det_thresh = 0.3
         self.match_thresh = match_thresh
         self.confirm_thresh = confirm_thresh
         self.pre_img = None
@@ -495,9 +495,31 @@ class SparseTracker(object):
                 track.mark_lost()
                 lost_stracks.append(track)  
 
-        
+        # OAI
+        u_detection_sec = [d for d in u_detection_sec]
+        dists = iou_distance(activated_starcks, u_detection_sec)
+        iou_threshold = 0.99  # You can adjust this threshold as needed
+
+        # Find the indices of detections with IoU less than the threshold
+        filtered_indices = np.where(dists < iou_threshold)
+
+        # Get the filtered detections
+        filtered_detections = [u_detection_sec[i] for i in filtered_indices[1]]
+
+        # Convert the lists to sets
+        u_detection_set = set(u_detection_sec)
+        filtered_set = set(filtered_detections)
+
+        # Obtain the set difference
+        difference_set = u_detection_set - filtered_set
+
+        # Convert the result back to a list if needed
+        difference_list = list(difference_set)
+
+        u_detection_high += difference_list
+
         # Deal with unconfirmed tracks, usually tracks with only one beginning frame 
-        detections = [d for d in u_detection_high ]
+        detections = [d for d in u_detection_high]
         dists = iou_distance(unconfirmed, detections)
         #if not self.args.mot20:
         dists = fuse_score(dists, detections)
@@ -517,6 +539,7 @@ class SparseTracker(object):
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
+
         """ Step 5: Update state"""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:

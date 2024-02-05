@@ -26,9 +26,9 @@ def parse_args():
                         help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
     parser.add_argument("--config", help="model config file path", default= CONFIG / 'nanodet-plus-m_416.yml')
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
-    parser.add_argument('--reid-model', type=Path, default=WEIGHTS / 'osnet_x0_25_msmt17.pt',
+    parser.add_argument('--reid-model', type=Path, default= WEIGHTS / 'osnet_x0_25_msmt17.pt',
                         help='reid model path')
-    parser.add_argument("--path", default=VIDEO / 'mot02.mp4', help="path to images or video")
+    parser.add_argument("--path", type=str, default= VIDEO / 'mot02.mp4', help="path to images or video")
     parser.add_argument('--conf', type=float, default=0.3,
                         help='confidence threshold')
     parser.add_argument('--only-detect', action='store_true',
@@ -132,7 +132,7 @@ def main():
     if args.demo == "image":
         pass
     elif args.demo == "video" or args.demo == "webcam":
-        vid = cv2.VideoCapture(args.path)
+        vid = cv2.VideoCapture(str(args.path))
         while True:
             ret, im = vid.read()
             if ret:

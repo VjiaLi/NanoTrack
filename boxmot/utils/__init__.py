@@ -12,7 +12,7 @@ CONFIG = ROOT / 'config'
 BOXMOT = ROOT / "boxmot"
 RESULT = ROOT / "runs" / "test"
 REQUIREMENTS = ROOT / "requirements.txt"
-VIDEO = ROOT / "video"
+VIDEO = ROOT / "videos"
 
 # global logger
 from loguru import logger
