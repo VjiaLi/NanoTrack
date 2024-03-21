@@ -328,7 +328,7 @@ class NanoTracker(object):
                 continue
         return mask
     
-    def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
+    def IDCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
         if len(detections) > 0:
             detections_pro = self.preprocessor.preprocess(detections)
             det_mask = self.get_deep_range(detections_pro, levels, detections) 
@@ -502,7 +502,7 @@ class NanoTracker(object):
         """
 
         # IDCM
-        activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(
+        activated_starcks, refind_stracks, u_track, u_detection_high = self.IDCM(
                                                                                 detections, 
                                                                                 strack_pool, 
                                                                                 activated_starcks,
@@ -526,7 +526,7 @@ class NanoTracker(object):
         """
 
         # IDCM
-        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
+        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.IDCM(
                                                                                 detections_second, 
                                                                                 r_tracked_stracks, 
                                                                                 activated_starcks, 
