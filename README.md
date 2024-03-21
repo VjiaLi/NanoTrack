@@ -5,13 +5,19 @@ We introduce NanoTrack, a novel multi-object tracking (MOT) method that leverage
 
 ![overview](asserts/overview.png)
 
+## Download Model
+
+**Download pre-trained Detection models and find more models in [Model Zoo](#model-zoo) or in [Release Files](https://github.com/RangiLyu/nanodet/releases)**
+
+**Download pre-trained ReID models and find more models in [Model Zoo](#model-zoo)(https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO)**
+
 ## Tutorials
 
 <details>
 <summary>Track</summary>
 
 ```bash
-$ python track.py --demo video --config your_config_path --model your_model_path --reid-model your_reid_path --path your_video_path --tracking-method nanotrack
+$ python track.py --demo video --model your_model_path --reid-model your_reid_path --path your_video_path --tracking-method nanotrack
 ```
 </details>
 
@@ -19,6 +25,6 @@ $ python track.py --demo video --config your_config_path --model your_model_path
 <summary>Evaluation</summary>
 
 ```bash
-$ python val.py --demo image --config your_config_path --model your_model_path --reid-model your_reid_path --benchmark MOT16 --tracking-method nanotrack
+$ python val.py --demo image --model your_model_path --reid-model your_reid_path --benchmark MOT16 --tracking-method nanotrack
 ```
 </details>
