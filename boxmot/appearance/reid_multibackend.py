@@ -285,7 +285,7 @@ class ReIDDetectMultiBackend(nn.Module):
             return self.to_numpy(features)
 
     def to_numpy(self, x):
-        return x.cpu().numpy() if isinstance(x, torch.Tensor) else x
+        return x.cpu().detach().numpy() if isinstance(x, torch.Tensor) else x
 
     def warmup(self, imgsz=[(256, 128, 3)]):
         # warmup model by running inference once

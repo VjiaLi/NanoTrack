@@ -109,6 +109,38 @@ class Show:
                 os.makedirs(path)
             cv2.imwrite(f'{path}\\{frame}.jpg',im)
 
+    def sparse_tracks(self, tracks, color_id, im, frame, path):
+        if len(tracks) != 0:
+            for track in tracks:
+                tlbr = track.tlbr.astype('int')
+                score = track.score
+                id = track.track_id
+                p1, p2 = (int(tlbr[0]), int(tlbr[1])), (int(tlbr[2]), int(tlbr[3]))
+                im = cv2.rectangle(
+                    self.img,
+                    (tlbr[0], tlbr[1]),
+                    (tlbr[2], tlbr[3]),
+                    color[color_id],
+                    self.lw,
+                    cv2.LINE_AA
+                )
+                w, h = cv2.getTextSize(f'id: {id}, conf:{round(score,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]   # text width, height
+                outside = p1[1] - h >= 3
+                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                cv2.rectangle(im, p1, p2, color[color_id], -1, cv2.LINE_AA)  # filled
+                cv2.putText(
+                    im,
+                    f'id: {id}, conf:{round(score,2)}',
+                    (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    0,
+                    self.lw / 3,
+                    text_color,
+                    self.tf,
+                    lineType=cv2.LINE_AA
+                )
+            if not os.path.exists(path):
+                os.makedirs(path)
+            cv2.imwrite(f'{path}\\{frame}.jpg',im)
 
 
     def show_dets(self, dets):

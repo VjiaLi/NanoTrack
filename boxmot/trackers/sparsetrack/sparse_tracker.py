@@ -1,11 +1,8 @@
 import numpy as np
 # from tracker import pbcvt 
-from .kalman_filter import KalmanFilter
-from .matching import *
+from ..nanotrack.kalman_filter import KalmanFilter
+from ..nanotrack.matching import *
 from .basetrack import BaseTrack, TrackState
-from boxmot.utils import RESULT
-from track import parse_args
-from utils.show import Show
 
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
@@ -13,11 +10,11 @@ class STrack(BaseTrack):
 
         self.score = det[4]
         self.cls = det[5]
-        self.det_ind = det[6]
+        self.det_ind = det[6].astype('int')
 
         # wait activate
         self._tlwh = np.asarray(self.tlbr_to_tlwh(det[0:4]), dtype=np.float)
-        self.kalman_filter = None
+        self.kf = None
         self.mean, self.covariance = None, None
         self.is_activated = False
         self.deep_vector = self._get_deep_vec()
@@ -36,7 +33,7 @@ class STrack(BaseTrack):
             mean_state[6] = 0
             mean_state[7] = 0
 
-        self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
+        self.mean, self.covariance = self.kf.predict(mean_state, self.covariance)
 
     @staticmethod
     def multi_predict(stracks):
@@ -54,10 +51,10 @@ class STrack(BaseTrack):
 
     def activate(self, kalman_filter, frame_id):
         """Start a new tracklet"""
-        self.kalman_filter = kalman_filter
+        self.kf = kalman_filter
         self.track_id = self.next_id()
 
-        self.mean, self.covariance = self.kalman_filter.initiate(self.tlwh_to_xywh(self._tlwh))
+        self.mean, self.covariance = self.kf.initiate(self.tlwh_to_xywh(self._tlwh))
 
         self.tracklet_len = 0
         self.state = TrackState.Tracked
@@ -68,7 +65,7 @@ class STrack(BaseTrack):
 
     def re_activate(self, new_track, frame_id, new_id=False):
 
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance, self.tlwh_to_xywh(new_track.tlwh))
+        self.mean, self.covariance = self.kf.update(self.mean, self.covariance, self.tlwh_to_xywh(new_track.tlwh))
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         self.is_activated = True
@@ -76,6 +73,7 @@ class STrack(BaseTrack):
         if new_id:
             self.track_id = self.next_id()
         self.score = new_track.score
+        self.det_ind = new_track.det_ind
 
     def update(self, new_track, frame_id):
         """
@@ -90,10 +88,11 @@ class STrack(BaseTrack):
 
         new_tlwh = new_track.tlwh
 
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance, self.tlwh_to_xywh(new_tlwh))
+        self.mean, self.covariance = self.kf.update(self.mean, self.covariance, self.tlwh_to_xywh(new_tlwh))
 
         self.state = TrackState.Tracked
         self.is_activated = True
+        self.det_ind = new_track.det_ind
 
         self.score = new_track.score
 
@@ -212,7 +211,7 @@ class SparseTracker(object):
         self.pre_img = None
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.max_time_lost = self.buffer_size
-        self.kalman_filter = KalmanFilter()
+        self.kf = KalmanFilter()
         self.down_scale = down_scale
         self.layers = depth_levels 
         self.depth_levels_low = depth_levels_low
@@ -252,12 +251,11 @@ class SparseTracker(object):
                 continue
         return mask
     
-    def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse):
+    def DCM(self, detections, tracks, activated_starcks, refind_stracks, levels, thresh, curr_img, stage, frame, is_fuse, is_motion, mc_lambda = 0.1):
         if len(detections) > 0:
             det_mask = self.get_deep_range(detections, levels) 
         else:
             det_mask = []
-
         if len(tracks)!=0:
             track_mask = self.get_deep_range(tracks, levels)
         else:
@@ -274,7 +272,7 @@ class SparseTracker(object):
                     idx  = np.argwhere(det_mask[i] == True)
                     for idd in idx:
                         dets.append(detections[idd[0]])
-                    show1.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det'))
+                    show1.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det_02'))
             """
                 
             if  len(track_mask) < len(det_mask):
@@ -304,10 +302,13 @@ class SparseTracker(object):
                 # update trk
                 track_ = track_ + u_tracks
                 
-                dists = iou_distance(track_, det_)
+                dists = iou_distance(track_, det_)       
+                    
                 if is_fuse:
                     dists = fuse_score(dists, det_)
+
                 matches, u_track_, u_det_ = linear_assignment(dists, thresh)
+
                 for itracked, idet in matches:
                     track = track_[itracked]
                     det = det_[idet]
@@ -362,7 +363,6 @@ class SparseTracker(object):
             else:
                 tracked_stracks.append(track)
         
-        
         # init high-score dets
         if len(dets) > 0:
             detections = [STrack(det) for det in dets]   
@@ -397,10 +397,10 @@ class SparseTracker(object):
                                                                                 self.match_thresh,
                                                                                 curr_img,
                                                                                 1,
-                                                                                self.frame_id, 
+                                                                                self.frame_id,
+                                                                                is_motion=False, 
                                                                                 is_fuse=True)  
-        
-            
+
         # association the untrack to the low score detections
         if len(dets_second) > 0:
             '''Detections'''
@@ -416,12 +416,14 @@ class SparseTracker(object):
                                                                                 activated_starcks, 
                                                                                 refind_stracks, 
                                                                                 self.depth_levels_low, 
-                                                                                0.5, 
+                                                                                0.4, 
                                                                                 curr_img,
                                                                                 2,
                                                                                 self.frame_id,
+                                                                                is_motion=False, 
                                                                                 is_fuse=False,
                                                                                 ) 
+        
         for track in u_strack:
             if not track.state == TrackState.Lost:
                 track.mark_lost()
@@ -437,6 +439,7 @@ class SparseTracker(object):
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_id)
             activated_starcks.append(unconfirmed[itracked])
+
         for it in u_unconfirmed:
             track = unconfirmed[it]
             track.mark_removed()
@@ -447,8 +450,9 @@ class SparseTracker(object):
             track = detections[inew]
             if track.score < self.det_thresh:
                 continue
-            track.activate(self.kalman_filter, self.frame_id)
+            track.activate(self.kf, self.frame_id)
             activated_starcks.append(track)
+
         """ Step 5: Update state"""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:
@@ -464,6 +468,7 @@ class SparseTracker(object):
         self.lost_stracks.extend(lost_stracks)
         self.lost_stracks = sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
+
         # get scores of lost tracks
         output_stracks = [track for track in self.tracked_stracks if track.is_activated]
         outputs = []

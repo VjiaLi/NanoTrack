@@ -301,6 +301,7 @@ class BYTETracker(object):
             output.append(t.det_ind)
             outputs.append(output)
         outputs = np.asarray(outputs)
+
         return outputs
 
 
