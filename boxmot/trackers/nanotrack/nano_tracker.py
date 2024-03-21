@@ -456,11 +456,11 @@ class NanoTracker(object):
 
         true_indices = [index for index, value in enumerate(np.any(dists < 0.2, axis=0)) if value]
 
-        # 从detections_second中删除提取的下标对应的元素，并添加到detections中
+        # Remove the element corresponding to the extracted subscript from detections_second and add it to detections
         selected_detections = [detections_second[index] for index in true_indices]
         detections.extend(selected_detections)
 
-        # 从detections_second中删除提取的下标对应的元素
+        # Remove the element corresponding to the extracted subscript from detections_second
         detections_second = [det for index, det in enumerate(detections_second) if index not in true_indices]
 
         dists = iou_distance(self.pre_low, detections_second)
