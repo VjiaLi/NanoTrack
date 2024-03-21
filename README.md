@@ -9,7 +9,7 @@ We introduce NanoTrack, a novel multi-object tracking (MOT) method that leverage
 
 **Download pre-trained Detection models and find more models in [Model Zoo](#model-zoo) or in [Release Files](https://github.com/RangiLyu/nanodet/releases)**
 
-**Download pre-trained ReID models and find more models in [Model Zoo](#model-zoo)(https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO)**
+**Download pre-trained ReID models and find more models in [Model Zoo](https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO)**
 
 ## Tutorials
 
