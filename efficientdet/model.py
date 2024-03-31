@@ -458,8 +458,5 @@ class EfficientNet(nn.Module):
 
 
 if __name__ == '__main__':
-    from tensorboardX import SummaryWriter
-
-
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
