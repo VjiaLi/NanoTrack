@@ -197,10 +197,6 @@ def main():
 
                 if args.save:
                     out.write(im)
-                    
-                    # break on pressing q
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
             else:
                 break
         vid.release()
