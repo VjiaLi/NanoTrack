@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument(
         "--demo", default="video", help="demo type, eg. image, video"
     )
-    parser.add_argument('--tracking-method', type=str, default='bytetrack',
+    parser.add_argument('--tracking-method', type=str, default='nanotrack',
                         help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'efficientdet-d0.pth')
     parser.add_argument('--reid-model', type=Path, default= WEIGHTS / 'osnet_x0_25_msmt17.pt',

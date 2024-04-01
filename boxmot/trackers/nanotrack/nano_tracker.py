@@ -458,14 +458,6 @@ class NanoTracker(object):
         self.pre_high = detections
         self.pre_low = detections_second
 
-        """
-        args = parse_args()
-        show1 = Show(args, curr_img)
-        show1.sparse_dets(detections, 0,curr_img, self.frame_id, str(RESULT/ 'sparse_det_high_04'))
-        show2 = Show(args, curr_img)
-        show2.sparse_dets(detections_second, 1,curr_img, self.frame_id, str(RESULT/ 'sparse_det_high_04'))
-        """
-
         # get strack_pool   
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
 
@@ -503,14 +495,6 @@ class NanoTracker(object):
 
         # association the untrack to the low score detections
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]  
-
-        """
-        detections_show = self.preprocessor.preprocess(detections_second)
-        args = parse_args()
-        show1 = Show(args, curr_img)
-        for i, dets_show in enumerate(detections_show):
-            show1.sparse_dets(dets_show, i, curr_img, self.frame_id, str(RESULT/ 'sparse_det'))
-        """
 
         # IDCM
         activated_starcks, refind_stracks, u_strack, u_detection_sec = self.IDCM(
