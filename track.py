@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument(
         "--demo", default="video", help="demo type, eg. image, video"
     )
-    parser.add_argument('--tracking-method', type=str, default='strongsort',
+    parser.add_argument('--tracking-method', type=str, default='bytetrack',
                         help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
     parser.add_argument("--config", help="model config file path", default= CONFIG / 'nanodet-plus-m_416.yml')
     parser.add_argument("--model", help="model file path", default= WEIGHTS / 'nanodet-plus-m_416.pth')
@@ -147,6 +147,7 @@ def main():
                 for bbox in res[0][label]:
                     score = bbox[-1]
                     if score > args.conf and str(label) in args.classes:
+                        print(args.classes)
                         x0, y0, x1, y1 = [int(i) for i in bbox[:4]]
                         all_box.append([x0, y0, x1, y1, score, label])
             dets = np.array(all_box)

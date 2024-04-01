@@ -506,7 +506,7 @@ class NanoDetPlusHead(nn.Module):
                 bbox,
                 score,
                 score_thr=0.05,
-                nms_cfg=dict(type="nms", iou_threshold=0.3),
+                nms_cfg=dict(type="nms", iou_threshold=0.6),
                 max_num=100,
             )
             result_list.append(results)

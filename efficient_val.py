@@ -196,12 +196,11 @@ class Evaluator:
 
                 p = subprocess.Popen(
                     args=[
-                        sys.executable, ROOT / 'track.py',
+                        sys.executable, ROOT / 'efficient_track.py',
                         "--demo", self.opt.demo,
                         "--model", self.opt.model,
                         "--tracking-method", self.opt.tracking_method,
                         "--path", seq_path,
-                        "--config", self.opt.config,
                         "--project", self.opt.project,
                         "--name", save_dir.name,
                         "--classes", *self.opt.classes,
@@ -321,7 +320,7 @@ class Evaluator:
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default=WEIGHTS / 'nanodet-plus-m_416.pth', help='model.pt path(s)')
+    parser.add_argument('--model', type=str, default=WEIGHTS / 'efficientdet-d0.pth', help='model.pt path(s)')
     parser.add_argument('--reid-model', type=str, default=WEIGHTS / 'osnet_x0_25_msmt17.pt')
     parser.add_argument('--tracking-method', type=str, default='bytetrack',
                         help='strongsort, ocsort')
@@ -341,7 +340,7 @@ def parse_opt():
                         help='existing project/name ok, do not increment')
     parser.add_argument('--eval-existing', action='store_true',
                         help='evaluate existing results under project/name/mot')
-    parser.add_argument('--conf', type=float, default=0.3,
+    parser.add_argument('--conf', type=float, default=0.2,
                         help='confidence threshold')
     parser.add_argument('--imgsz', '--img-size', nargs='+', type=int, default=[1920],
                         help='inference size h,w')
@@ -349,12 +348,11 @@ def parse_opt():
                         help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--save', action='store_true',
                         help='save video tracking results')
-    parser.add_argument('--processes-per-device', type=int, default=2,
+    parser.add_argument('--processes-per-device', type=int, default=1,
                         help='how many subprocesses can be invoked per GPU (to manage memory consumption)')
     parser.add_argument(
         "--demo", default="image", help="demo type, eg. image, video and webcam"
     )
-    parser.add_argument("--config", help="model config file path")
     opt = parser.parse_args()
     device = []
 
