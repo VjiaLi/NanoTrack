@@ -147,7 +147,6 @@ def main():
                 for bbox in res[0][label]:
                     score = bbox[-1]
                     if score > args.conf and str(label) in args.classes:
-                        print(args.classes)
                         x0, y0, x1, y1 = [int(i) for i in bbox[:4]]
                         all_box.append([x0, y0, x1, y1, score, label])
             dets = np.array(all_box)

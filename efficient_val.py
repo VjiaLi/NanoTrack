@@ -322,7 +322,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default=WEIGHTS / 'efficientdet-d0.pth', help='model.pt path(s)')
     parser.add_argument('--reid-model', type=str, default=WEIGHTS / 'osnet_x0_25_msmt17.pt')
-    parser.add_argument('--tracking-method', type=str, default='bytetrack',
+    parser.add_argument('--tracking-method', type=str, default='nanotrack',
                         help='strongsort, ocsort')
     parser.add_argument('--name', default='exp',
                         help='save results to project/name')
@@ -340,7 +340,7 @@ def parse_opt():
                         help='existing project/name ok, do not increment')
     parser.add_argument('--eval-existing', action='store_true',
                         help='evaluate existing results under project/name/mot')
-    parser.add_argument('--conf', type=float, default=0.2,
+    parser.add_argument('--conf', type=float, default=0.3,
                         help='confidence threshold')
     parser.add_argument('--imgsz', '--img-size', nargs='+', type=int, default=[1920],
                         help='inference size h,w')

@@ -26,9 +26,9 @@ def parse_args():
     parser.add_argument('--reid-model', type=Path, default= WEIGHTS / 'osnet_x0_25_msmt17.pt',
                         help='reid model path')
     parser.add_argument("--path", default= VIDEO / 'mot04.mp4', help="path to images or video")
-    parser.add_argument('--conf', type=float, default=0.2,
+    parser.add_argument('--conf', type=float, default=0.3,
                         help='confidence threshold')
-    parser.add_argument('--nms-threshold', type=float, default=0.3,
+    parser.add_argument('--nms-threshold', type=float, default=0.6,
                         help='nms threshold')
     parser.add_argument('--classes', nargs='+', type=str, default=['0'],
                     help='filter by class: --classes 0, or --classes 0 2 3')
@@ -159,7 +159,6 @@ def main():
 
             ori_img = ori_img.copy()
             all_box = []
-            print(out)
             for j in range(len(out[0]['rois'])):
                 x1, y1, x2, y2 = out[0]['rois'][j].astype(int)
                 obj = obj_list[out[0]['class_ids'][j]]

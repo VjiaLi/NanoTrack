@@ -261,8 +261,8 @@ class BoundingBoxProcessor:
         return res_objs
 
 class NanoTracker(object):
-    def __init__(self, track_thresh = 0.45, match_thresh = 0.8, confirm_thresh = 0.7,track_buffer = 25, down_scale = 4 , depth_levels = 1, depth_levels_low = 3,frame_rate = 30):
-        self.tracked_stracks = []  # type: list[STrack]
+    def __init__(self, track_thresh = 0.45, match_thresh = 0.8, confirm_thresh = 0.7,track_buffer = 25, down_scale = 4 , depth_levels = 1, depth_levels_low = 3, frame_rate = 30):
+        self.tracked_stracks = []  # type: list[STrack] 
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
         self.pre_high = []
@@ -343,17 +343,6 @@ class NanoTracker(object):
 
         u_detection, u_tracks, res_det, res_track = [], [], [], []
         if len(track_mask) != 0:
-            """
-            if stage == 2:
-                args = parse_args()
-                show2 = Show(args, curr_img)
-                for i in range(len(det_mask)):
-                    dets = []
-                    idx  = np.argwhere(det_mask[i] == True)
-                    for idd in idx:
-                        dets.append(detections[idd[0]])
-                    show2.sparse_dets(dets, i, curr_img, frame, str(RESULT/ 'sparse_det_new_04'))
-            """
             if  len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
                     idx = np.argwhere(det_mask[len(track_mask) + i] == True)
@@ -456,11 +445,9 @@ class NanoTracker(object):
 
         true_indices = [index for index, value in enumerate(np.any(dists < 0.2, axis=0)) if value]
 
-        # Remove the element corresponding to the extracted subscript from detections_second and add it to detections
         selected_detections = [detections_second[index] for index in true_indices]
         detections.extend(selected_detections)
 
-        # Remove the element corresponding to the extracted subscript from detections_second
         detections_second = [det for index, det in enumerate(detections_second) if index not in true_indices]
 
         dists = iou_distance(self.pre_low, detections_second)
@@ -622,7 +609,6 @@ def joint_stracks(tlista, tlistb):
             exists[tid] = 1
             res.append(t)
     return res
-
 
 def sub_stracks(tlista, tlistb):
     stracks = {}
