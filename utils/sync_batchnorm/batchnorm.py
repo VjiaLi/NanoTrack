@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 # File   : batchnorm.py
 # Author : Jiayuan Mao
 # Email  : maojiayuan@gmail.com

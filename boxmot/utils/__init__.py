@@ -8,7 +8,7 @@ import numpy as np
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # root directory
 WEIGHTS = ROOT / 'weights'
-CONFIG = ROOT / 'config'
+CONFIG = ROOT / 'configs'
 BOXMOT = ROOT / "boxmot"
 RESULT = ROOT / "runs" / "test"
 REQUIREMENTS = ROOT / "requirements.txt"

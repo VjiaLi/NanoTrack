@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 # File   : replicate.py
 # Author : Jiayuan Mao
 # Email  : maojiayuan@gmail.com

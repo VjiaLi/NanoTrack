@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 # File   : unittest.py
 # Author : Jiayuan Mao
 # Email  : maojiayuan@gmail.com

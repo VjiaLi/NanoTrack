@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 # File   : batchnorm_reimpl.py
 # Author : acgtyrant
 # Date   : 11/01/2018
