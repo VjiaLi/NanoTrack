@@ -11,6 +11,7 @@ WEIGHTS = ROOT / 'weights'
 CONFIG = ROOT / 'configs'
 BOXMOT = ROOT / "boxmot"
 RESULT = ROOT / "runs" / "test"
+OUTPUT = ROOT / "runs" / "models"
 REQUIREMENTS = ROOT / "requirements.txt"
 VIDEO = ROOT / "videos"
 

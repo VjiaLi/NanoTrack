@@ -73,7 +73,7 @@ class DetectionTrainer(object):
         self.optimizer = None
         self.is_loaded_weights = False
         self.use_gpu = True
-        self.fp16 = True
+        self.fp16 = False
         self.use_amp = self.cfg.get('amp', False)
         self.amp_level = self.cfg.get('amp_level', 'O1')
         self.custom_white_list = self.cfg.get('custom_white_list', None)
@@ -363,6 +363,7 @@ class DetectionTrainer(object):
                     # if self._compose_callback:
                     #     self._compose_callback.on_step_end(self.status)
                     # save image with detection
+                    
                     save_name = self._get_save_image_name(output_dir,
                                                           image_path)
                     logger.info("Detection bbox results save in {}".format(

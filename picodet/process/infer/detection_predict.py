@@ -32,24 +32,25 @@ def run(args, cfg):
 
     # inference
     if args.slice_infer:
-        trainer.slice_predict(
-            images,
-            slice_size=args.slice_size,
-            overlap_ratio=args.overlap_ratio,
-            combine_method=args.combine_method,
-            match_threshold=args.match_threshold,
-            match_metric=args.match_metric,
-            draw_threshold=args.draw_threshold,
-            output_dir=args.output_dir,
-            save_results=args.save_results,
-            visualize=args.visualize)
+        results = trainer.slice_predict(
+                    images,
+                    slice_size=args.slice_size,
+                    overlap_ratio=args.overlap_ratio,
+                    combine_method=args.combine_method,
+                    match_threshold=args.match_threshold,
+                    match_metric=args.match_metric,
+                    draw_threshold=args.draw_threshold,
+                    output_dir=args.output_dir,
+                    save_results=args.save_results,
+                    visualize=args.visualize)
     else:
-        trainer.predict(
-            images,
-            draw_threshold=args.draw_threshold,
-            output_dir=args.output_dir,
-            save_results=args.save_results,
-            visualize=args.visualize)
+        results = trainer.predict(
+                    images,
+                    draw_threshold=args.draw_threshold,
+                    output_dir=args.output_dir,
+                    save_results=args.save_results,
+                    visualize=args.visualize)
+    return results
 
 
 def main(args):
@@ -59,7 +60,7 @@ def main(args):
 
     DetectionCommonUtils.check_config(cfg)
 
-    run(args, cfg)
+    return run(args, cfg)
 
 
 if __name__ == '__main__':

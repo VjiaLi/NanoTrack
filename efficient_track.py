@@ -1,10 +1,8 @@
-import time
 import torch
 import argparse
 import cv2
 import numpy as np
 from torch.backends import cudnn
-from matplotlib import colors
 from pathlib import Path
 from utils.show import Show
 from boxmot.utils import ROOT, WEIGHTS, CONFIG, VIDEO
@@ -12,7 +10,7 @@ from boxmot.tracker_zoo import create_tracker
 from utils.utils import write_mot_results
 from efficientdet.backbone import EfficientDetBackbone
 from efficientdet.utils import BBoxTransform, ClipBoxes
-from utils.utils import preprocess, invert_affine, postprocess, preprocess_video, get_image_list, aspectaware_resize_padding, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
+from utils.utils import invert_affine, postprocess, preprocess_video, get_image_list, aspectaware_resize_padding
 
 
 def parse_args():
@@ -92,7 +90,7 @@ def main():
     mean = (0.485, 0.456, 0.406)
     std = (0.229, 0.224, 0.225)
 
-    use_float16 = False
+    use_float16 = args.half
     cudnn.fastest = True
     cudnn.benchmark = True
     obj_list = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',

@@ -14,7 +14,7 @@ videos/
 logs/
 
 # test file
-pico_track.py
+pico_test.py
 efficientdet_test_videos.py
 efficientdet_test.py
 

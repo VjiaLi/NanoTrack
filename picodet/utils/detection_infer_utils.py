@@ -3,9 +3,10 @@ import glob
 import os
 
 from picodet.utils.logger_utils import logger
-
+from pathlib import Path
 from picodet.utils.base_utils import BaseUtil
 from picodet.utils.detection_cli_utils import ArgsParser
+from boxmot.utils import WEIGHTS, ROOT
 
 """
  Detection 推理工具
@@ -21,15 +22,56 @@ class DetectionInferUtils(BaseUtil):
     def init_args():
         parser = ArgsParser()
         parser.add_argument(
+            "--demo", 
+            default="video", 
+            help="demo type, eg. image, video")
+        parser.add_argument('--tracking-method', type=str, default='nanotrack',
+                    help='deepocsort, botsort, strongsort, ocsort, bytetrack, nanotrack, sparsetrack')
+        parser.add_argument('--reid-model', 
+            type=Path, 
+            default= WEIGHTS / 'osnet_x0_25_msmt17.pt',
+            help='reid model path')
+        parser.add_argument(
             "--infer_dir",
             type=str,
             default=None,
             help="Directory for images to perform inference on.")
         parser.add_argument(
-            "--infer_img",
+            "--path",
             type=str,
             default=None,
             help="Image path, has higher priority over --infer_dir")
+        parser.add_argument(
+            '--conf', 
+            type=float, 
+            default=0.3,
+            help='confidence threshold')
+        parser.add_argument(
+            '--classes', 
+            nargs='+', 
+            type=str, 
+            default=['0'],
+            help='filter by class: --classes 0, or --classes 0 2 3')
+        parser.add_argument(
+            '--project', 
+            default=ROOT / 'runs' / 'test',
+            help='save results to project/name')
+        parser.add_argument(
+            '--name', 
+            default='exp',
+            help='save results to project/name')
+        parser.add_argument(
+            '--save', 
+            action='store_true',
+            help='save video tracking results')
+        parser.add_argument(
+            '--save-mot', 
+            action='store_true',
+            help='...')
+        parser.add_argument(
+            '--show', 
+            action='store_true',
+            help='display tracking video results')
         parser.add_argument(
             "--output_dir",
             type=str,
@@ -96,7 +138,7 @@ class DetectionInferUtils(BaseUtil):
         parser.add_argument(
             "--visualize",
             type=ast.literal_eval,
-            default=True,
+            default=False,
             help="Whether to save visualize results to output_dir.")
         parser.add_argument(
             "--do_transform",
@@ -108,7 +150,10 @@ class DetectionInferUtils(BaseUtil):
             type=str,
             default=None,
             help="predict labels file")
-
+        parser.add_argument('--per-class', default=False, action='store_true',
+                        help='not mix up classes when tracking')
+        parser.add_argument('--half', action='store_true',
+                            help='use FP16 half-precision inference')
         args = parser.parse_args()
         return args
 
