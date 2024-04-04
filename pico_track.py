@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 
+from utils.show import Show
 from pathlib import Path
 from picodet.utils.time_utils import TimeUtils
 from picodet.utils.detection_infer_utils import DetectionInferUtils
@@ -108,9 +109,9 @@ def main():
     weight_output_dir = f"{args.output_dir}/network/{FileUtils.get_file_name(args.config)}"
     trainer.load_weights(cfg.weights, do_transform=args.do_transform, output_dir=weight_output_dir)
     tracker = on_predict_start(args)
-
     for frame_idx, image_name in enumerate(img_path):
         ori_img = cv2.imread(image_name)
+        #show = Show(args, ori_img)
         # get inference images
         images = DetectionInferUtils.get_test_images(args.infer_dir, image_name)
         # inference
@@ -129,14 +130,21 @@ def main():
             cls = results[0]['bbox'][j][0].astype(int)
             if cls == 0 and score > args.conf:
                 all_box.append([x1, y1, x2, y2, score, cls])
-       
+        
         dets = np.array(all_box)
 
         if dets.shape[0] == 0:
             continue
 
         tracks = tracker.update(dets, ori_img) # --> (x, y, x, y, id, conf, cls, ind) 
-        
+
+        #show.show_tracks(tracks)
+
+        #cv2.imshow('frame', ori_img)
+
+        #if cv2.waitKey(1) & 0xFF == ord('q'): 
+        #    break
+
         mot_txt_path = Path(args.project) / Path(args.name) / 'mot' / (Path(args.path).parent.name + '.txt')
 
         if args.save_mot:

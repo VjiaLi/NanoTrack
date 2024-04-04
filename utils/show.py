@@ -186,32 +186,29 @@ class Show:
             inds = tracks[:, 7].astype('int') # float64 to int
         except:
             pass
-        if self.args.demo == 'image':
-            pass
-        elif self.args.demo == 'video':
-            if tracks.shape[0] != 0:
-                for xyxy, id, conf, cls in zip(xyxys, ids, confs, clss):
-                    if cls == 0:
-                        p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
-                        self.img = cv2.rectangle(
-                            self.img,
-                            (xyxy[0], xyxy[1]),
-                            (xyxy[2], xyxy[3]),
-                            color[id % len(color)],
-                            self.lw,
-                            cv2.LINE_AA
-                        )
-                        w, h = cv2.getTextSize(f'id: {id}, conf:{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
-                        outside = p1[1] - h >= 3
-                        p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                        cv2.rectangle(self.img, p1, p2, color[id % len(color)], -1, cv2.LINE_AA)  # filled
-                        cv2.putText(
-                            self.img,
-                            f'id: {id}, conf:{round(conf,2)}',
-                            (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
-                            0,
-                            self.lw / 3,
-                            text_color,
-                            self.tf,
-                            lineType=cv2.LINE_AA
-                        )
+        if tracks.shape[0] != 0:
+            for xyxy, id, conf, cls in zip(xyxys, ids, confs, clss):
+                if cls == 0:
+                    p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
+                    self.img = cv2.rectangle(
+                        self.img,
+                        (xyxy[0], xyxy[1]),
+                        (xyxy[2], xyxy[3]),
+                        color[id % len(color)],
+                        self.lw,
+                        cv2.LINE_AA
+                    )
+                    w, h = cv2.getTextSize(f'id: {id}, conf:{round(conf,2)}', 0, fontScale=self.lw / 3, thickness=self.tf)[0]  # text width, height
+                    outside = p1[1] - h >= 3
+                    p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                    cv2.rectangle(self.img, p1, p2, color[id % len(color)], -1, cv2.LINE_AA)  # filled
+                    cv2.putText(
+                        self.img,
+                        f'id: {id}, conf:{round(conf,2)}',
+                        (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                        0,
+                        self.lw / 3,
+                        text_color,
+                        self.tf,
+                        lineType=cv2.LINE_AA
+                    )
