@@ -1,1 +1,1 @@
-# VJia Li 🔥 Nano Tracking
+# Mikel Broström 🔥 Yolo Tracking 🧾 AGPL-3.0 license

@@ -1,4 +1,5 @@
-# VJia Li 🔥 Nano Tracking
+# Mikel Broström 🔥 Yolo Tracking 🧾 AGPL-3.0 license
+
 """
     This script is adopted from the SORT script by Alex Bewley alex@bewley.ai
 """

@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import torch
 
 from utils.show import Show
 from pathlib import Path
@@ -44,17 +45,19 @@ def on_predict_start(args):
         'configs' /\
         (args.tracking_method + '.yaml')
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     tracker = create_tracker(
         args.tracking_method,
         tracking_config,
         args.reid_model,
-        'cuda:0',
+        device,
         args.half,
         args.per_class
     )
 
     if hasattr(tracker, 'model'):
-            tracker.model.warmup()
+        tracker.model.warmup()
     
     return tracker
 
@@ -126,6 +129,10 @@ def main():
 
         for j in range(len(results[0]['bbox'])):
             x1, y1, x2, y2 = results[0]['bbox'][j][2:6].astype(int)
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+            x2 = max(0, x2)
+            y2 = max(0, y2)
             score = float(results[0]['bbox'][j][1])
             cls = results[0]['bbox'][j][0].astype(int)
             if cls == 0 and score > args.conf:
