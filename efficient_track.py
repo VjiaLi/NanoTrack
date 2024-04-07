@@ -65,11 +65,13 @@ def on_predict_start(args):
         'configs' /\
         (args.tracking_method + '.yaml')
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     tracker = create_tracker(
         args.tracking_method,
         tracking_config,
         args.reid_model,
-        'cuda:0',
+        device,
         args.half,
         args.per_class
     )

@@ -322,7 +322,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default=WEIGHTS / 'efficientdet-d0.pth', help='model.pt path(s)')
     parser.add_argument('--reid-model', type=str, default=WEIGHTS / 'osnet_x0_25_msmt17.pt')
-    parser.add_argument('--tracking-method', type=str, default='sparsetrack',
+    parser.add_argument('--tracking-method', type=str, default='nanotrack',
                         help='strongsort, ocsort')
     parser.add_argument('--name', default='exp',
                         help='save results to project/name')
