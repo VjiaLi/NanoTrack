@@ -1,20 +1,23 @@
 
 # tracker-specific packages ----------------------------------------------------
-
+Cython
 filterpy>=1.4.5         # OCSORT & DeepOCSORT
-
+webcolors
 ftfy>=6.1.1             #clip
 gdown>=4.7.1            # google drive model download
 GitPython>=3.1.0        # track eval cloning
 lapx>=0.5.4
 loguru>=0.7.0
 numpy==1.23.1           # otherwise issues with track eval
+ultralytics==8.0.146 
 opencv-python>=4.6.0
 pandas>=1.1.4           # export matrix
 pre-commit>=3.3.3
 PyYAML>=5.3.1           # read tracker configs
 regex>=2023.6.3         #clip
 pytorch-lightning>=1.9.0,<2.0.0
+termcolor
+pycocotools
 
 scikit-learn>=1.3.0     # gsi
 tensorboard>=2.13.0
