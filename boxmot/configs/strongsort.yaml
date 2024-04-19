@@ -1,5 +1,5 @@
 ecc: true
-ema_alpha: 0.8
+ema_alpha: 0.9
 max_age: 30
 max_dist: 0.2
 max_iou_dist: 0.7

@@ -33,7 +33,7 @@ def parse_args():
                         help='confidence threshold')
     parser.add_argument('--classes', nargs='+', type=str, default=['0'],
                     help='filter by class: --classes 0, or --classes 0 2 3')
-    parser.add_argument('--only-detect', action='store_true',
+    parser.add_argument('--only-detect', action='store_false',
                         help='only display detection')
     parser.add_argument('--device', default='0',
                         help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
@@ -43,7 +43,7 @@ def parse_args():
                         help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true',
                         help='existing project/name ok, do not increment')
-    parser.add_argument('--save', action='store_true',
+    parser.add_argument('--save', action='store_false',
                         help='save video tracking results')
     parser.add_argument('--save-mot', action='store_true',
                     help='...')
@@ -188,7 +188,9 @@ def main():
                 if args.only_detect:
                     show.show_dets(dets)
                 else:
+
                     tracks = tracker.update(dets, im) # --> (x, y, x, y, id, conf, cls, ind) 
+                    
                     show.show_tracks(tracks)
                     
                 if args.show:

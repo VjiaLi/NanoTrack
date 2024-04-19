@@ -32,7 +32,7 @@ from tqdm import tqdm
 from ultralytics.utils.checks import check_requirements, print_args
 from ultralytics.utils.files import increment_path
 
-from boxmot.utils import ROOT, WEIGHTS
+from boxmot.utils import ROOT, WEIGHTS, CONFIG
 from boxmot.utils import logger as LOGGER
 
 
@@ -323,6 +323,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default=WEIGHTS / 'nanodet-plus-m_416.pth', help='model.pt path(s)')
     parser.add_argument('--reid-model', type=str, default=WEIGHTS / 'osnet_x0_25_msmt17.pt')
+    parser.add_argument("--config", help="model config file path", default= CONFIG / 'nanodet' /'nanodet-plus-m_416.yml')
     parser.add_argument('--tracking-method', type=str, default='nanotrack',
                         help='strongsort, ocsort')
     parser.add_argument('--name', default='exp',
@@ -354,7 +355,6 @@ def parse_opt():
     parser.add_argument(
         "--demo", default="image", help="demo type, eg. image, video and webcam"
     )
-    parser.add_argument("--config", help="model config file path")
     opt = parser.parse_args()
     device = []
 

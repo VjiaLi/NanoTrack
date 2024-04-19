@@ -190,7 +190,6 @@ class ReIDDetectMultiBackend(nn.Module):
         # dets are of different sizes so batch preprocessing is not possible
         for box in xyxys:
             x1, y1, x2, y2 = box.astype('int')
-            print(x1,y1,x2,y2)
             crop = img[y1:y2, x1:x2]
             # resize
             crop = cv2.resize(
