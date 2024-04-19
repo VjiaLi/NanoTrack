@@ -64,8 +64,8 @@ def create_exp(args):
 
     dir = str(args.project / args.name) + f"{max_num+1}"
     video_filename = os.path.join(dir, "result.avi")
-    out = cv2.VideoWriter(video_filename,cv2.VideoWriter_fourcc(*'XVID'),30,(1920,1080))
-    return out
+    
+    return video_filename
 
 def get_image_list(path):
     image_names = []

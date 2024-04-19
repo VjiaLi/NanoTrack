@@ -33,7 +33,7 @@ def parse_args():
                         help='confidence threshold')
     parser.add_argument('--classes', nargs='+', type=str, default=['0'],
                     help='filter by class: --classes 0, or --classes 0 2 3')
-    parser.add_argument('--only-detect', action='store_false',
+    parser.add_argument('--only-detect', action='store_true',
                         help='only display detection')
     parser.add_argument('--device', default='0',
                         help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
@@ -43,7 +43,7 @@ def parse_args():
                         help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true',
                         help='existing project/name ok, do not increment')
-    parser.add_argument('--save', action='store_false',
+    parser.add_argument('--save', action='store_true',
                         help='save video tracking results')
     parser.add_argument('--save-mot', action='store_true',
                     help='...')
@@ -129,10 +129,9 @@ def main():
     logger.log('Press "Esc", "q" or "Q" to exit.')
     predictor = Predictor(cfg, args.model, logger, device=device)
     tracker = on_predict_start(args, predictor)
-    
-    if args.save:
-        out = create_exp(args)
 
+    if args.save:
+        filename = create_exp(args)
     if args.demo == "image":
         if os.path.isdir(args.path):
             files = get_image_list(args.path)
@@ -166,11 +165,13 @@ def main():
                     tracks,
                     frame_idx,
                 ) 
-
     elif args.demo == "video" or args.demo == "webcam":
         vid = cv2.VideoCapture(str(args.path))
+        ret, im = vid.read()
+        if args.save:
+            height, width, _ = im.shape
+            out = cv2.VideoWriter(filename,cv2.VideoWriter_fourcc(*'XVID'),30,(width, height))
         while True:
-            ret, im = vid.read()
             if ret:
                 show = Show(args, im)
                 meta, res = predictor.inference(im)
@@ -190,7 +191,7 @@ def main():
                 else:
 
                     tracks = tracker.update(dets, im) # --> (x, y, x, y, id, conf, cls, ind) 
-                    
+
                     show.show_tracks(tracks)
                     
                 if args.show:
@@ -202,6 +203,7 @@ def main():
 
                 if cv2.waitKey(1) & 0xFF == ord('q'): 
                     break
+                ret, im = vid.read()
             else:
                 break
         vid.release()
