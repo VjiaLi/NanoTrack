@@ -148,11 +148,11 @@ class BYTETracker(object):
         removed_stracks = []
         confs = dets[:, 4]
 
-        remain_inds = confs > self.track_thresh   # 取高分检测框
+        remain_inds = confs > self.track_thresh  
 
         inds_low = confs > 0.1 
         inds_high = confs < self.track_thresh
-        inds_second = np.logical_and(inds_low, inds_high)  # 取 0.1 ~ thresh 的检测框，即低分检测框
+        inds_second = np.logical_and(inds_low, inds_high)
         dets_second = dets[inds_second]
         dets = dets[remain_inds]
 
@@ -174,19 +174,19 @@ class BYTETracker(object):
                 tracked_stracks.append(track)
 
         """ Step 2: First association, with high score detection boxes"""
-        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)  # 将已有的轨迹和丢失的轨迹合并
+        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks) 
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
         dists = iou_distance(strack_pool, detections)
 
         # if not self.args.mot20:
-        dists = fuse_score(dists, detections)  # 此种方式猜测作者是想通过检测得分低的框做iou匹配时当做不可靠对象来降低最终的匹配得分，不可靠检测可以为遮挡对象或者半身之类的。
+        dists = fuse_score(dists, detections)  
     
-        matches, u_track, u_detection = linear_assignment(   # 匈牙利匹配
+        matches, u_track, u_detection = linear_assignment(  
             dists, thresh=self.match_thresh
         )
 
-        for itracked, idet in matches:   # 在匹配上的轨迹中寻找是否为丢失的轨迹，如果是的话重新激活，不是的话就更新状态
+        for itracked, idet in matches:  
             track = strack_pool[itracked]
             det = detections[idet]
             if track.state == TrackState.Tracked:
@@ -203,7 +203,7 @@ class BYTETracker(object):
             detections_second = [STrack(det_second) for det_second in dets_second]
         else:
             detections_second = []
-        r_tracked_stracks = [   # 筛选没有匹配上的并且被激活的轨迹
+        r_tracked_stracks = [   
             strack_pool[i]
             for i in u_track
             if strack_pool[i].state == TrackState.Tracked
