@@ -1,6 +1,7 @@
 
 # tracker-specific packages ----------------------------------------------------
 Cython
+cython_bbox
 filterpy>=1.4.5         # OCSORT & DeepOCSORT
 webcolors
 ftfy>=6.1.1             #clip
